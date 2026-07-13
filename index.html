@@ -6,7 +6,7 @@
   <title>Pattern Generator</title>
   <style>
     :root {
-      --panel-bg: rgba(20, 22, 34, 0.82);
+      --panel-bg: rgba(20, 22, 34, 0.86);
       --panel-border: rgba(255, 255, 255, 0.12);
       --text: #e8eaf2;
       --text-dim: #9aa0b4;
@@ -17,9 +17,7 @@
     * { box-sizing: border-box; }
 
     html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
+      margin: 0; padding: 0; height: 100%;
       overflow: hidden;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       background: #0b0d18;
@@ -27,149 +25,112 @@
 
     #stage { position: fixed; inset: 0; }
 
-    #art {
-      display: block;
-      width: 100%;
-      height: 100%;
-      cursor: grab;
-      touch-action: none;
-    }
+    #art { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
     #art.grabbing { cursor: grabbing; }
 
     /* ---- Control panel ---- */
     #panel {
-      position: fixed;
-      top: 18px;
-      left: 18px;
-      width: 278px;
+      position: fixed; top: 18px; left: 18px;
+      width: 288px;
       max-height: calc(100vh - 36px);
       overflow-y: auto;
       padding: 18px 18px 20px;
       border-radius: 14px;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
       color: var(--text);
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
       z-index: 10;
       transition: transform 0.25s ease, opacity 0.25s ease;
     }
-    #panel.collapsed {
-      transform: translateX(calc(-100% - 24px));
-      opacity: 0;
-      pointer-events: none;
-    }
+    #panel.collapsed { transform: translateX(calc(-100% - 24px)); opacity: 0; pointer-events: none; }
 
     #panel h1 { margin: 0 0 2px; font-size: 16px; font-weight: 650; letter-spacing: 0.2px; }
     #panel .subtitle { margin: 0 0 16px; font-size: 12px; color: var(--text-dim); }
 
     .group { margin-bottom: 18px; }
     .section-label {
-      display: block;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--text-dim);
-      margin-bottom: 10px;
+      display: block; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-dim); margin-bottom: 10px;
     }
+    hr.sep { border: none; border-top: 1px solid var(--panel-border); margin: 4px 0 16px; }
 
     /* Color rows */
-    .color-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
+    .color-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .color-row input[type="color"] {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 34px;
-      height: 34px;
-      padding: 0;
-      border: 1px solid var(--panel-border);
-      border-radius: 9px;
-      background: none;
-      cursor: pointer;
-      flex: 0 0 auto;
+      -webkit-appearance: none; appearance: none;
+      width: 32px; height: 32px; padding: 0;
+      border: 1px solid var(--panel-border); border-radius: 8px;
+      background: none; cursor: pointer; flex: 0 0 auto;
     }
     .color-row input[type="color"]::-webkit-color-swatch-wrapper { padding: 3px; }
-    .color-row input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
-    .color-row input[type="color"]::-moz-color-swatch { border: none; border-radius: 6px; }
+    .color-row input[type="color"]::-webkit-color-swatch { border: none; border-radius: 5px; }
+    .color-row input[type="color"]::-moz-color-swatch { border: none; border-radius: 5px; }
 
     .color-fields { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
     .color-fields .name { font-size: 12px; color: var(--text-dim); }
     .hexwrap { display: flex; align-items: center; }
     .hexwrap .hash { color: var(--text-dim); font-size: 13px; margin-right: 3px; }
     .color-fields input[type="text"] {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--panel-border);
-      color: var(--text);
-      border-radius: 7px;
-      padding: 6px 8px;
-      font-size: 13px;
-      font-variant-numeric: tabular-nums;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      outline: none;
+      width: 100%; background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--panel-border); color: var(--text);
+      border-radius: 7px; padding: 5px 8px; font-size: 13px;
+      font-variant-numeric: tabular-nums; text-transform: uppercase;
+      letter-spacing: 0.5px; outline: none;
     }
     .color-fields input[type="text"]:focus { border-color: var(--accent); }
     .color-fields input[type="text"].invalid { border-color: var(--bad); }
 
-    /* Zoom control */
+    /* Zoom */
     .zoom-control { display: flex; align-items: center; gap: 10px; }
     .zoom-control input[type="range"] {
-      flex: 1;
-      -webkit-appearance: none;
-      appearance: none;
-      height: 4px;
-      border-radius: 3px;
-      background: rgba(255, 255, 255, 0.18);
-      outline: none;
+      flex: 1; -webkit-appearance: none; appearance: none;
+      height: 4px; border-radius: 3px; background: rgba(255, 255, 255, 0.18); outline: none;
     }
     .zoom-control input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none; appearance: none;
-      width: 16px; height: 16px; border-radius: 50%;
+      -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%;
       background: var(--accent); cursor: pointer; border: 2px solid #dfe6ff;
     }
     .zoom-control input[type="range"]::-moz-range-thumb {
-      width: 16px; height: 16px; border-radius: 50%;
-      background: var(--accent); cursor: pointer; border: 2px solid #dfe6ff;
+      width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #dfe6ff;
     }
+    .zoom-readout { margin-top: 8px; font-size: 11px; color: var(--text-dim); text-align: right; font-variant-numeric: tabular-nums; }
 
     .btn {
       -webkit-appearance: none; appearance: none;
-      border: 1px solid var(--panel-border);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text);
-      border-radius: 8px;
-      width: 30px; height: 30px;
-      font-size: 17px; line-height: 1;
-      cursor: pointer; flex: 0 0 auto;
+      border: 1px solid var(--panel-border); background: rgba(255, 255, 255, 0.06);
+      color: var(--text); border-radius: 8px; width: 30px; height: 30px;
+      font-size: 17px; line-height: 1; cursor: pointer; flex: 0 0 auto;
       transition: background 0.15s ease;
     }
     .btn:hover { background: rgba(255, 255, 255, 0.14); }
     .btn:active { transform: translateY(1px); }
 
-    .zoom-readout {
-      margin-top: 8px;
-      font-size: 11px;
-      color: var(--text-dim);
-      text-align: right;
-      font-variant-numeric: tabular-nums;
+    /* Segmented toggles */
+    .seg { display: flex; gap: 6px; }
+    .seg button {
+      flex: 1; -webkit-appearance: none; appearance: none;
+      border: 1px solid var(--panel-border); background: rgba(255, 255, 255, 0.06);
+      color: var(--text-dim); border-radius: 8px; padding: 7px 4px;
+      font-size: 12px; cursor: pointer; transition: all 0.15s ease;
+    }
+    .seg button:hover { background: rgba(255, 255, 255, 0.12); }
+    .seg button.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+    .seg.colors button.active { color: #fff; }
+    .field-label { font-size: 11px; color: var(--text-dim); margin: 0 0 6px; }
+
+    .inline { display: flex; align-items: center; gap: 8px; }
+    .inline input[type="number"] {
+      width: 62px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--panel-border);
+      color: var(--text); border-radius: 7px; padding: 7px 8px; font-size: 13px; outline: none;
     }
 
-    .row-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .row-actions { display: flex; gap: 8px; }
     .text-btn {
-      flex: 1;
-      -webkit-appearance: none; appearance: none;
-      border: 1px solid var(--panel-border);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text);
-      border-radius: 8px;
-      padding: 9px 8px;
-      font-size: 12px; cursor: pointer;
+      flex: 1; -webkit-appearance: none; appearance: none;
+      border: 1px solid var(--panel-border); background: rgba(255, 255, 255, 0.06);
+      color: var(--text); border-radius: 8px; padding: 9px 8px; font-size: 12px; cursor: pointer;
       transition: background 0.15s ease;
     }
     .text-btn:hover { background: rgba(255, 255, 255, 0.14); }
@@ -181,12 +142,11 @@
     #toggle {
       position: fixed; top: 18px; left: 18px; z-index: 11;
       width: 40px; height: 40px; border-radius: 10px;
-      border: 1px solid var(--panel-border);
-      background: var(--panel-bg);
+      border: 1px solid var(--panel-border); background: var(--panel-bg);
       backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-      color: var(--text); cursor: pointer;
-      display: none; align-items: center; justify-content: center;
-      font-size: 18px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      color: var(--text); cursor: pointer; display: none;
+      align-items: center; justify-content: center; font-size: 18px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
     #panel.collapsed ~ #toggle { display: flex; }
   </style>
@@ -202,16 +162,16 @@
         </pattern>
       </defs>
       <rect id="fill" x="0" y="0" width="100%" height="100%" fill="url(#pat)"></rect>
+      <g id="overlay"></g>
     </svg>
   </div>
 
   <div id="panel">
     <h1>Pattern Generator</h1>
-    <p class="subtitle">DB diagonal pattern &middot; three colors</p>
+    <p class="subtitle">DB diagonal pattern</p>
 
     <div class="group">
-      <span class="section-label">Colors</span>
-
+      <span class="section-label">Pattern colors</span>
       <div class="color-row">
         <input type="color" id="sw1" aria-label="Color 1 swatch" />
         <div class="color-fields">
@@ -219,7 +179,6 @@
           <div class="hexwrap"><span class="hash">#</span><input type="text" id="hx1" maxlength="6" spellcheck="false" /></div>
         </div>
       </div>
-
       <div class="color-row">
         <input type="color" id="sw2" aria-label="Color 2 swatch" />
         <div class="color-fields">
@@ -227,7 +186,6 @@
           <div class="hexwrap"><span class="hash">#</span><input type="text" id="hx2" maxlength="6" spellcheck="false" /></div>
         </div>
       </div>
-
       <div class="color-row">
         <input type="color" id="sw3" aria-label="Color 3 swatch" />
         <div class="color-fields">
@@ -241,18 +199,75 @@
       <span class="section-label">Zoom / Scale</span>
       <div class="zoom-control">
         <button class="btn" id="zoomOut" aria-label="Zoom out">&minus;</button>
-        <input type="range" id="zoom" min="25" max="500" step="1" value="100" />
+        <input type="range" id="zoom" min="25" max="2400" step="1" value="100" />
         <button class="btn" id="zoomIn" aria-label="Zoom in">+</button>
       </div>
       <div class="zoom-readout" id="zoomReadout">100%</div>
     </div>
 
+    <hr class="sep" />
+
+    <div class="group">
+      <span class="section-label">Overlay bars</span>
+
+      <div class="color-row">
+        <input type="color" id="osw1" aria-label="Overlay color A" />
+        <div class="color-fields">
+          <span class="name">Bar color A &middot; &#8531;</span>
+          <div class="hexwrap"><span class="hash">#</span><input type="text" id="ohx1" maxlength="6" spellcheck="false" /></div>
+        </div>
+      </div>
+      <div class="color-row">
+        <input type="color" id="osw2" aria-label="Overlay color B" />
+        <div class="color-fields">
+          <span class="name">Bar color B &middot; &#8531;</span>
+          <div class="hexwrap"><span class="hash">#</span><input type="text" id="ohx2" maxlength="6" spellcheck="false" /></div>
+        </div>
+      </div>
+      <div class="color-row">
+        <input type="color" id="osw3" aria-label="Overlay color C" />
+        <div class="color-fields">
+          <span class="name">Bar color C &middot; &#8531;</span>
+          <div class="hexwrap"><span class="hash">#</span><input type="text" id="ohx3" maxlength="6" spellcheck="false" /></div>
+        </div>
+      </div>
+
+      <p class="field-label" style="margin-top:14px">Click size</p>
+      <div class="seg" id="sizeSeg">
+        <button data-size="0">S</button>
+        <button data-size="1" class="active">M</button>
+        <button data-size="2">L</button>
+      </div>
+
+      <p class="field-label" style="margin-top:14px">Click color</p>
+      <div class="seg colors" id="colorSeg">
+        <button data-col="0">A</button>
+        <button data-col="1">B</button>
+        <button data-col="2">C</button>
+        <button data-col="-1" class="active">Auto</button>
+      </div>
+
+      <p class="field-label" style="margin-top:14px">Scatter random</p>
+      <div class="inline">
+        <input type="number" id="scatterCount" min="1" max="500" step="1" value="18" />
+        <button class="text-btn" id="scatterBtn" style="flex:1">Scatter</button>
+      </div>
+
+      <div class="row-actions" style="margin-top:10px">
+        <button class="text-btn" id="undoBtn">Undo</button>
+        <button class="text-btn" id="clearBtn">Clear bars</button>
+      </div>
+
+      <p class="hint">Click empty canvas to place a bar (snaps to the pattern). Drag to pan.</p>
+    </div>
+
+    <hr class="sep" />
+
     <div class="group" style="margin-bottom:0">
       <div class="row-actions">
-        <button class="text-btn" id="resetBtn">Reset</button>
+        <button class="text-btn" id="resetBtn">Reset all</button>
         <button class="text-btn primary" id="downloadBtn">Save PNG</button>
       </div>
-      <p class="hint">Scroll to zoom &middot; drag to move the pattern.</p>
     </div>
   </div>
 
@@ -268,25 +283,32 @@
 
       var art = document.getElementById("art");
       var pat = document.getElementById("pat");
+      var overlay = document.getElementById("overlay");
       var groups = { c1: document.getElementById("g1"), c2: document.getElementById("g2"), c3: document.getElementById("g3") };
 
-      // 100% zoom maps to this pattern scale (tuned to the reference density).
-      var BASE_SCALE = 0.16;
+      var BASE_SCALE = 0.16;               // pattern scale at 100% zoom
+      var SIZES = [5, 9, 15];              // three larger-bar scale factors (S / M / L)
 
       var DEFAULTS = {
-        c1: DATA.colors.c1, // light
-        c2: DATA.colors.c2, // mid
-        c3: DATA.colors.c3, // dark
+        c1: DATA.colors.c1, c2: DATA.colors.c2, c3: DATA.colors.c3,
+        // overlay bar colors default to the three pattern tones
+        o1: DATA.colors.c3, o2: DATA.colors.c1, o3: DATA.colors.c2,
         zoom: 100
       };
 
       var state = {
         c1: DEFAULTS.c1, c2: DEFAULTS.c2, c3: DEFAULTS.c3,
+        o1: DEFAULTS.o1, o2: DEFAULTS.o2, o3: DEFAULTS.o3,
         zoom: DEFAULTS.zoom,
-        panX: 0, panY: 0
+        panX: 0, panY: 0,
+        clickSize: 1,     // index into SIZES for click placement
+        clickColor: -1,   // -1 = auto-cycle, else 0/1/2
+        autoCounter: 0
       };
 
-      // ---- Build the pattern tile once ----
+      var bars = []; // { x, y, n, c }  (x,y = absolute user-space D corner; n = scale; c = color idx)
+
+      // ---- Build pattern tile once ----
       function buildGroup(g, polyList) {
         var frag = document.createDocumentFragment();
         for (var i = 0; i < polyList.length; i++) {
@@ -299,21 +321,74 @@
       buildGroup(groups.c1, DATA.polys.c1);
       buildGroup(groups.c2, DATA.polys.c2);
       buildGroup(groups.c3, DATA.polys.c3);
-
       pat.setAttribute("width", DATA.period);
       pat.setAttribute("height", DATA.height);
 
-      // ---- Apply state to the SVG ----
+      // ---- Geometry helpers ----
+      function scaleFactor() { return BASE_SCALE * (state.zoom / 100); }
+
+      function transformStr() {
+        return "translate(" + state.panX + " " + state.panY + ") scale(" + scaleFactor() + ")";
+      }
+
+      function barPoints(x, y, n) {
+        var th = DATA.bar.th, sh = DATA.bar.sh, h = DATA.bar.h;
+        return x + "," + y + " " +
+               (x + th * n) + "," + y + " " +
+               (x + (th + sh) * n) + "," + (y - h * n) + " " +
+               (x + sh * n) + "," + (y - h * n);
+      }
+
+      // Snap a desired D-corner (ux,uy) in user space to the nearest real bar anchor.
+      function snap(ux, uy) {
+        var P = DATA.period, VH = DATA.height, A = DATA.anchors;
+        var best = null, bestD = Infinity;
+        for (var k = 0; k < A.length; k++) {
+          var ax = A[k][0], ay = A[k][1];
+          var X = ax + Math.round((ux - ax) / P) * P;
+          var Y = ay + Math.round((uy - ay) / VH) * VH;
+          var dx = X - ux, dy = Y - uy, d = dx * dx + dy * dy;
+          if (d < bestD) { bestD = d; best = [X, Y]; }
+        }
+        return best;
+      }
+
+      // Screen -> user space
+      function toUser(sx, sy) {
+        var s = scaleFactor();
+        return [(sx - state.panX) / s, (sy - state.panY) / s];
+      }
+
+      // ---- Apply state ----
       function applyColors() {
         groups.c1.setAttribute("fill", state.c1);
         groups.c2.setAttribute("fill", state.c2);
         groups.c3.setAttribute("fill", state.c3);
       }
-
       function applyTransform() {
-        var s = BASE_SCALE * (state.zoom / 100);
-        pat.setAttribute("patternTransform",
-          "translate(" + state.panX + " " + state.panY + ") scale(" + s + ")");
+        var t = transformStr();
+        pat.setAttribute("patternTransform", t);
+        overlay.setAttribute("transform", t);
+      }
+      function overlayColor(ci) { return ci === 0 ? state.o1 : ci === 1 ? state.o2 : state.o3; }
+
+      function renderBars() {
+        while (overlay.firstChild) overlay.removeChild(overlay.firstChild);
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < bars.length; i++) {
+          var b = bars[i];
+          var p = document.createElementNS(SVGNS, "polygon");
+          p.setAttribute("points", barPoints(b.x, b.y, SIZES[b.n]));
+          p.setAttribute("fill", overlayColor(b.c));
+          frag.appendChild(p);
+        }
+        overlay.appendChild(frag);
+      }
+      function recolorBars() {
+        var kids = overlay.childNodes;
+        for (var i = 0; i < kids.length; i++) {
+          kids[i].setAttribute("fill", overlayColor(bars[i].c));
+        }
       }
 
       function sizeSvg() {
@@ -323,143 +398,189 @@
         art.setAttribute("viewBox", "0 0 " + w + " " + h);
       }
 
-      // ---- Colour helpers ----
+      // ---- Place a bar centered on a user-space point ----
+      function addBarAt(ux, uy, sizeIdx, colorIdx) {
+        var th = DATA.bar.th, sh = DATA.bar.sh, h = DATA.bar.h, n = SIZES[sizeIdx];
+        // center-of-bar offset from D corner
+        var cx = (th + sh) * n / 2, cy = -h * n / 2;
+        var d = snap(ux - cx, uy - cy);
+        var c = colorIdx;
+        if (c < 0) { c = state.autoCounter % 3; state.autoCounter++; }
+        bars.push({ x: d[0], y: d[1], n: sizeIdx, c: c });
+        renderBars();
+      }
+
+      // ---- Colour input wiring ----
       function normHex(v) {
         v = String(v).trim().replace(/^#/, "");
-        if (/^[0-9a-fA-F]{3}$/.test(v)) {
-          v = v[0] + v[0] + v[1] + v[1] + v[2] + v[2];
-        }
+        if (/^[0-9a-fA-F]{3}$/.test(v)) v = v[0] + v[0] + v[1] + v[1] + v[2] + v[2];
         return /^[0-9a-fA-F]{6}$/.test(v) ? "#" + v.toLowerCase() : null;
       }
 
-      var colorKeys = ["c1", "c2", "c3"];
-      var swatches = { c1: document.getElementById("sw1"), c2: document.getElementById("sw2"), c3: document.getElementById("sw3") };
-      var hexInputs = { c1: document.getElementById("hx1"), c2: document.getElementById("hx2"), c3: document.getElementById("hx3") };
-
-      function syncColorInputs(key) {
-        swatches[key].value = state[key];
-        hexInputs[key].value = state[key].replace("#", "").toUpperCase();
-        hexInputs[key].classList.remove("invalid");
+      function wireColor(key, swId, hxId, onChange) {
+        var sw = document.getElementById(swId), hx = document.getElementById(hxId);
+        function sync() { sw.value = state[key]; hx.value = state[key].replace("#", "").toUpperCase(); hx.classList.remove("invalid"); }
+        sw.addEventListener("input", function () {
+          state[key] = sw.value; hx.value = state[key].replace("#", "").toUpperCase(); hx.classList.remove("invalid"); onChange();
+        });
+        hx.addEventListener("input", function () {
+          var n = normHex(hx.value);
+          if (n) { hx.classList.remove("invalid"); state[key] = n; sw.value = n; onChange(); }
+          else hx.classList.add("invalid");
+        });
+        hx.addEventListener("blur", sync);
+        return sync;
       }
 
-      colorKeys.forEach(function (key) {
-        // Native swatch picker
-        swatches[key].addEventListener("input", function () {
-          state[key] = swatches[key].value;
-          hexInputs[key].value = state[key].replace("#", "").toUpperCase();
-          hexInputs[key].classList.remove("invalid");
-          applyColors();
-        });
-        // Hex text field
-        hexInputs[key].addEventListener("input", function () {
-          var norm = normHex(hexInputs[key].value);
-          if (norm) {
-            hexInputs[key].classList.remove("invalid");
-            state[key] = norm;
-            swatches[key].value = norm;
-            applyColors();
-          } else {
-            hexInputs[key].classList.add("invalid");
-          }
-        });
-        // Tidy up on blur
-        hexInputs[key].addEventListener("blur", function () {
-          syncColorInputs(key);
-        });
-      });
+      var syncFns = [];
+      syncFns.push(wireColor("c1", "sw1", "hx1", applyColors));
+      syncFns.push(wireColor("c2", "sw2", "hx2", applyColors));
+      syncFns.push(wireColor("c3", "sw3", "hx3", applyColors));
+      syncFns.push(wireColor("o1", "osw1", "ohx1", recolorBars));
+      syncFns.push(wireColor("o2", "osw2", "ohx2", recolorBars));
+      syncFns.push(wireColor("o3", "osw3", "ohx3", recolorBars));
+      function syncAllColors() { syncFns.forEach(function (f) { f(); }); }
 
       // ---- Zoom ----
       var zoomInput = document.getElementById("zoom");
       var zoomReadout = document.getElementById("zoomReadout");
-
       function updateZoomReadout() { zoomReadout.textContent = Math.round(state.zoom) + "%"; }
-
-      function setZoom(z) {
+      function setZoom(z, cx, cy) {
         z = Math.max(parseFloat(zoomInput.min), Math.min(parseFloat(zoomInput.max), z));
-        state.zoom = z;
+        // keep the point under (cx,cy) fixed while zooming
+        if (cx != null) {
+          var before = toUser(cx, cy);
+          state.zoom = z;
+          var s = scaleFactor();
+          state.panX = cx - before[0] * s;
+          state.panY = cy - before[1] * s;
+        } else {
+          state.zoom = z;
+        }
         zoomInput.value = z;
         updateZoomReadout();
         applyTransform();
       }
-
       zoomInput.addEventListener("input", function () { setZoom(parseFloat(zoomInput.value)); });
-      document.getElementById("zoomIn").addEventListener("click", function () { setZoom(state.zoom * 1.15); });
-      document.getElementById("zoomOut").addEventListener("click", function () { setZoom(state.zoom / 1.15); });
-
+      document.getElementById("zoomIn").addEventListener("click", function () { setZoom(state.zoom * 1.2); });
+      document.getElementById("zoomOut").addEventListener("click", function () { setZoom(state.zoom / 1.2); });
       art.addEventListener("wheel", function (e) {
         e.preventDefault();
-        var factor = e.deltaY < 0 ? 1.08 : 1 / 1.08;
-        setZoom(state.zoom * factor);
+        setZoom(state.zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1), e.clientX, e.clientY);
       }, { passive: false });
 
-      // ---- Pan (drag) ----
-      var dragging = false, lastX = 0, lastY = 0;
+      // ---- Pan + click-to-place ----
+      var pointerDown = false, moved = 0, lastX = 0, lastY = 0, downX = 0, downY = 0;
       art.addEventListener("pointerdown", function (e) {
-        dragging = true; lastX = e.clientX; lastY = e.clientY;
-        art.classList.add("grabbing");
+        pointerDown = true; moved = 0;
+        lastX = downX = e.clientX; lastY = downY = e.clientY;
         art.setPointerCapture(e.pointerId);
       });
       art.addEventListener("pointermove", function (e) {
-        if (!dragging) return;
-        state.panX += e.clientX - lastX;
-        state.panY += e.clientY - lastY;
+        if (!pointerDown) return;
+        var dx = e.clientX - lastX, dy = e.clientY - lastY;
+        moved += Math.abs(dx) + Math.abs(dy);
+        if (moved > 4) art.classList.add("grabbing");
+        state.panX += dx; state.panY += dy;
         lastX = e.clientX; lastY = e.clientY;
         applyTransform();
       });
-      function endDrag(e) {
-        dragging = false;
+      art.addEventListener("pointerup", function (e) {
+        pointerDown = false;
         art.classList.remove("grabbing");
-        if (e && e.pointerId != null && art.hasPointerCapture && art.hasPointerCapture(e.pointerId)) {
-          art.releasePointerCapture(e.pointerId);
+        if (art.hasPointerCapture && art.hasPointerCapture(e.pointerId)) art.releasePointerCapture(e.pointerId);
+        if (moved <= 4) {
+          // treat as a click -> place a bar
+          var u = toUser(e.clientX, e.clientY);
+          addBarAt(u[0], u[1], state.clickSize, state.clickColor);
         }
+      });
+      art.addEventListener("pointercancel", function () { pointerDown = false; art.classList.remove("grabbing"); });
+
+      // ---- Segmented controls ----
+      function wireSeg(segId, attr, cb) {
+        var seg = document.getElementById(segId);
+        seg.addEventListener("click", function (e) {
+          var btn = e.target.closest("button"); if (!btn) return;
+          seg.querySelectorAll("button").forEach(function (b) { b.classList.remove("active"); });
+          btn.classList.add("active");
+          cb(parseInt(btn.getAttribute(attr), 10));
+        });
       }
-      art.addEventListener("pointerup", endDrag);
-      art.addEventListener("pointercancel", endDrag);
+      wireSeg("sizeSeg", "data-size", function (v) { state.clickSize = v; });
+      wireSeg("colorSeg", "data-col", function (v) { state.clickColor = v; });
+
+      // ---- Scatter ----
+      document.getElementById("scatterBtn").addEventListener("click", function () {
+        var n = parseInt(document.getElementById("scatterCount").value, 10) || 0;
+        var w = window.innerWidth, h = window.innerHeight;
+        var tl = toUser(0, 0), br = toUser(w, h);
+        var minX = Math.min(tl[0], br[0]), maxX = Math.max(tl[0], br[0]);
+        var minY = Math.min(tl[1], br[1]), maxY = Math.max(tl[1], br[1]);
+        // Build a colour bag with exactly 1/3 each, then shuffle.
+        var bag = [];
+        for (var i = 0; i < n; i++) bag.push(i % 3);
+        for (var j = bag.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var t = bag[j]; bag[j] = bag[r]; bag[r] = t; }
+        for (var k = 0; k < n; k++) {
+          var ux = minX + Math.random() * (maxX - minX);
+          var uy = minY + Math.random() * (maxY - minY);
+          var size = Math.floor(Math.random() * 3);
+          addBarAtRaw(ux, uy, size, bag[k]);
+        }
+        renderBars();
+      });
+      // like addBarAt but without immediate re-render (batch)
+      function addBarAtRaw(ux, uy, sizeIdx, colorIdx) {
+        var th = DATA.bar.th, sh = DATA.bar.sh, h = DATA.bar.h, n = SIZES[sizeIdx];
+        var cx = (th + sh) * n / 2, cy = -h * n / 2;
+        var d = snap(ux - cx, uy - cy);
+        bars.push({ x: d[0], y: d[1], n: sizeIdx, c: colorIdx });
+      }
+
+      document.getElementById("undoBtn").addEventListener("click", function () {
+        bars.pop(); renderBars();
+      });
+      document.getElementById("clearBtn").addEventListener("click", function () {
+        bars.length = 0; renderBars();
+      });
 
       // ---- Reset ----
       document.getElementById("resetBtn").addEventListener("click", function () {
         state.c1 = DEFAULTS.c1; state.c2 = DEFAULTS.c2; state.c3 = DEFAULTS.c3;
+        state.o1 = DEFAULTS.o1; state.o2 = DEFAULTS.o2; state.o3 = DEFAULTS.o3;
         state.zoom = DEFAULTS.zoom; state.panX = 0; state.panY = 0;
-        colorKeys.forEach(syncColorInputs);
+        state.autoCounter = 0;
+        bars.length = 0;
+        syncAllColors();
         zoomInput.value = DEFAULTS.zoom;
         updateZoomReadout();
-        applyColors();
-        applyTransform();
+        applyColors(); applyTransform(); renderBars();
       });
 
       // ---- Save PNG ----
       document.getElementById("downloadBtn").addEventListener("click", function () {
         var w = window.innerWidth, h = window.innerHeight;
         var clone = art.cloneNode(true);
-        clone.setAttribute("width", w);
-        clone.setAttribute("height", h);
+        clone.setAttribute("width", w); clone.setAttribute("height", h);
         clone.setAttribute("viewBox", "0 0 " + w + " " + h);
         var xml = new XMLSerializer().serializeToString(clone);
         var uri = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(xml)));
-
         var img = new Image();
         img.onload = function () {
-          var scaleOut = 2; // export at 2x for crispness
+          var out = 2;
           var cv = document.createElement("canvas");
-          cv.width = w * scaleOut; cv.height = h * scaleOut;
-          var cx = cv.getContext("2d");
-          cx.drawImage(img, 0, 0, cv.width, cv.height);
+          cv.width = w * out; cv.height = h * out;
+          cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
           var link = document.createElement("a");
-          link.download = "pattern.png";
-          link.href = cv.toDataURL("image/png");
-          link.click();
+          link.download = "pattern.png"; link.href = cv.toDataURL("image/png"); link.click();
         };
         img.src = uri;
       });
 
       // ---- Panel collapse ----
       var panel = document.getElementById("panel");
-      document.getElementById("toggle").addEventListener("click", function () {
-        panel.classList.remove("collapsed");
-      });
-      panel.querySelector("h1").addEventListener("dblclick", function () {
-        panel.classList.add("collapsed");
-      });
+      document.getElementById("toggle").addEventListener("click", function () { panel.classList.remove("collapsed"); });
+      panel.querySelector("h1").addEventListener("dblclick", function () { panel.classList.add("collapsed"); });
 
       // ---- Resize ----
       var resizeTimer = null;
@@ -469,11 +590,12 @@
       });
 
       // ---- Init ----
-      colorKeys.forEach(syncColorInputs);
+      syncAllColors();
       sizeSvg();
       applyColors();
       applyTransform();
       updateZoomReadout();
+      renderBars();
     })();
   </script>
 </body>
