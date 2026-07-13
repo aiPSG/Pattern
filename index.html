@@ -11,7 +11,6 @@
       --text: #e8eaf2;
       --text-dim: #9aa0b4;
       --accent: #5b8cff;
-      --bad: #ff6b6b;
     }
 
     * { box-sizing: border-box; }
@@ -52,35 +51,33 @@
     .group { margin-bottom: 18px; }
     .section-label {
       display: block; font-size: 11px; text-transform: uppercase;
-      letter-spacing: 0.8px; color: var(--text-dim); margin-bottom: 10px;
+      letter-spacing: 0.8px; color: var(--text-dim); margin-bottom: 12px;
     }
     hr.sep { border: none; border-top: 1px solid var(--panel-border); margin: 4px 0 16px; }
 
-    /* Color rows */
-    .color-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .color-row input[type="color"] {
-      -webkit-appearance: none; appearance: none;
-      width: 32px; height: 32px; padding: 0;
-      border: 1px solid var(--panel-border); border-radius: 8px;
-      background: none; cursor: pointer; flex: 0 0 auto;
-    }
-    .color-row input[type="color"]::-webkit-color-swatch-wrapper { padding: 3px; }
-    .color-row input[type="color"]::-webkit-color-swatch { border: none; border-radius: 5px; }
-    .color-row input[type="color"]::-moz-color-swatch { border: none; border-radius: 5px; }
+    /* Colour slot: label + palette of swatches */
+    .cslot { margin-bottom: 14px; }
+    .cslot-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+    .cslot-head .name { font-size: 12px; color: var(--text); }
+    .cslot-head .hex { font-size: 10.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; text-transform: uppercase; }
 
-    .color-fields { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
-    .color-fields .name { font-size: 12px; color: var(--text-dim); }
-    .hexwrap { display: flex; align-items: center; }
-    .hexwrap .hash { color: var(--text-dim); font-size: 13px; margin-right: 3px; }
-    .color-fields input[type="text"] {
-      width: 100%; background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--panel-border); color: var(--text);
-      border-radius: 7px; padding: 5px 8px; font-size: 13px;
-      font-variant-numeric: tabular-nums; text-transform: uppercase;
-      letter-spacing: 0.5px; outline: none;
+    .pal { display: flex; flex-wrap: wrap; gap: 7px; }
+    .pal .sw {
+      width: 23px; height: 23px; border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      cursor: pointer; position: relative; padding: 0;
+      transition: transform 0.1s ease;
     }
-    .color-fields input[type="text"]:focus { border-color: var(--accent); }
-    .color-fields input[type="text"].invalid { border-color: var(--bad); }
+    .pal .sw:hover { transform: scale(1.08); }
+    .pal .sw.active { outline: 2px solid #fff; outline-offset: 1px; }
+    .pal .sw.custom {
+      background: conic-gradient(from 0deg, #ff4d4d, #ffd24d, #4dff88, #4dd2ff, #4d6bff, #d24dff, #ff4d4d);
+      overflow: hidden;
+    }
+    .pal .sw.custom input[type="color"] {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      opacity: 0; cursor: pointer; border: none; padding: 0;
+    }
 
     /* Zoom */
     .zoom-control { display: flex; align-items: center; gap: 10px; }
@@ -117,7 +114,6 @@
     }
     .seg button:hover { background: rgba(255, 255, 255, 0.12); }
     .seg button.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
-    .seg.colors button.active { color: #fff; }
     .field-label { font-size: 11px; color: var(--text-dim); margin: 0 0 6px; }
 
     .inline { display: flex; align-items: center; gap: 8px; }
@@ -172,26 +168,17 @@
 
     <div class="group">
       <span class="section-label">Pattern colors</span>
-      <div class="color-row">
-        <input type="color" id="sw1" aria-label="Color 1 swatch" />
-        <div class="color-fields">
-          <span class="name">Color 1 &middot; light</span>
-          <div class="hexwrap"><span class="hash">#</span><input type="text" id="hx1" maxlength="6" spellcheck="false" /></div>
-        </div>
+      <div class="cslot">
+        <div class="cslot-head"><span class="name">Color 1 &middot; light</span><span class="hex" id="lbl_c1"></span></div>
+        <div class="pal" id="pal_c1"></div>
       </div>
-      <div class="color-row">
-        <input type="color" id="sw2" aria-label="Color 2 swatch" />
-        <div class="color-fields">
-          <span class="name">Color 2 &middot; mid</span>
-          <div class="hexwrap"><span class="hash">#</span><input type="text" id="hx2" maxlength="6" spellcheck="false" /></div>
-        </div>
+      <div class="cslot">
+        <div class="cslot-head"><span class="name">Color 2 &middot; mid</span><span class="hex" id="lbl_c2"></span></div>
+        <div class="pal" id="pal_c2"></div>
       </div>
-      <div class="color-row">
-        <input type="color" id="sw3" aria-label="Color 3 swatch" />
-        <div class="color-fields">
-          <span class="name">Color 3 &middot; dark</span>
-          <div class="hexwrap"><span class="hash">#</span><input type="text" id="hx3" maxlength="6" spellcheck="false" /></div>
-        </div>
+      <div class="cslot">
+        <div class="cslot-head"><span class="name">Color 3 &middot; dark</span><span class="hex" id="lbl_c3"></span></div>
+        <div class="pal" id="pal_c3"></div>
       </div>
     </div>
 
@@ -210,26 +197,17 @@
     <div class="group">
       <span class="section-label">Overlay bars</span>
 
-      <div class="color-row">
-        <input type="color" id="osw1" aria-label="Overlay color A" />
-        <div class="color-fields">
-          <span class="name">Bar color A &middot; &#8531;</span>
-          <div class="hexwrap"><span class="hash">#</span><input type="text" id="ohx1" maxlength="6" spellcheck="false" /></div>
-        </div>
+      <div class="cslot">
+        <div class="cslot-head"><span class="name">Bar color A &middot; &#8531;</span><span class="hex" id="lbl_o1"></span></div>
+        <div class="pal" id="pal_o1"></div>
       </div>
-      <div class="color-row">
-        <input type="color" id="osw2" aria-label="Overlay color B" />
-        <div class="color-fields">
-          <span class="name">Bar color B &middot; &#8531;</span>
-          <div class="hexwrap"><span class="hash">#</span><input type="text" id="ohx2" maxlength="6" spellcheck="false" /></div>
-        </div>
+      <div class="cslot">
+        <div class="cslot-head"><span class="name">Bar color B &middot; &#8531;</span><span class="hex" id="lbl_o2"></span></div>
+        <div class="pal" id="pal_o2"></div>
       </div>
-      <div class="color-row">
-        <input type="color" id="osw3" aria-label="Overlay color C" />
-        <div class="color-fields">
-          <span class="name">Bar color C &middot; &#8531;</span>
-          <div class="hexwrap"><span class="hash">#</span><input type="text" id="ohx3" maxlength="6" spellcheck="false" /></div>
-        </div>
+      <div class="cslot">
+        <div class="cslot-head"><span class="name">Bar color C &middot; &#8531;</span><span class="hex" id="lbl_o3"></span></div>
+        <div class="pal" id="pal_o3"></div>
       </div>
 
       <p class="field-label" style="margin-top:14px">Click size</p>
@@ -240,7 +218,7 @@
       </div>
 
       <p class="field-label" style="margin-top:14px">Click color</p>
-      <div class="seg colors" id="colorSeg">
+      <div class="seg" id="colorSeg">
         <button data-col="0">A</button>
         <button data-col="1">B</button>
         <button data-col="2">C</button>
@@ -286,12 +264,23 @@
       var overlay = document.getElementById("overlay");
       var groups = { c1: document.getElementById("g1"), c2: document.getElementById("g2"), c3: document.getElementById("g3") };
 
-      var BASE_SCALE = 0.16;               // pattern scale at 100% zoom
-      var SIZES = [5, 9, 15];              // three larger-bar scale factors (S / M / L)
+      var BASE_SCALE = 0.16;      // pattern scale at 100% zoom
+      var SIZES = [2, 3, 5];      // three larger-bar scale factors (S / M / L)
+
+      // Selectable colours: pattern tones + the supplied brand palette (deduped).
+      var PALETTE = [
+        { name: "Light",           hex: "#1f2e66" },
+        { name: "Mid",             hex: "#0f245b" },
+        { name: "Grey",            hex: "#edf1f7" },
+        { name: "Bright Blue 10%", hex: "#e5f5fb" },
+        { name: "Bright Blue 20%", hex: "#ccedf9" },
+        { name: "Bright Blue",     hex: "#00a3e0" },
+        { name: "Deep Blue",       hex: "#1e2a78" },
+        { name: "Dark Blue",       hex: "#16184e" }
+      ];
 
       var DEFAULTS = {
         c1: DATA.colors.c1, c2: DATA.colors.c2, c3: DATA.colors.c3,
-        // overlay bar colors default to the three pattern tones
         o1: DATA.colors.c3, o2: DATA.colors.c1, o3: DATA.colors.c2,
         zoom: 100
       };
@@ -301,12 +290,10 @@
         o1: DEFAULTS.o1, o2: DEFAULTS.o2, o3: DEFAULTS.o3,
         zoom: DEFAULTS.zoom,
         panX: 0, panY: 0,
-        clickSize: 1,     // index into SIZES for click placement
-        clickColor: -1,   // -1 = auto-cycle, else 0/1/2
-        autoCounter: 0
+        clickSize: 1, clickColor: -1, autoCounter: 0
       };
 
-      var bars = []; // { x, y, n, c }  (x,y = absolute user-space D corner; n = scale; c = color idx)
+      var bars = []; // { x, y, n, c }
 
       // ---- Build pattern tile once ----
       function buildGroup(g, polyList) {
@@ -326,10 +313,7 @@
 
       // ---- Geometry helpers ----
       function scaleFactor() { return BASE_SCALE * (state.zoom / 100); }
-
-      function transformStr() {
-        return "translate(" + state.panX + " " + state.panY + ") scale(" + scaleFactor() + ")";
-      }
+      function transformStr() { return "translate(" + state.panX + " " + state.panY + ") scale(" + scaleFactor() + ")"; }
 
       function barPoints(x, y, n) {
         var th = DATA.bar.th, sh = DATA.bar.sh, h = DATA.bar.h;
@@ -339,7 +323,6 @@
                (x + sh * n) + "," + (y - h * n);
       }
 
-      // Snap a desired D-corner (ux,uy) in user space to the nearest real bar anchor.
       function snap(ux, uy) {
         var P = DATA.period, VH = DATA.height, A = DATA.anchors;
         var best = null, bestD = Infinity;
@@ -352,12 +335,7 @@
         }
         return best;
       }
-
-      // Screen -> user space
-      function toUser(sx, sy) {
-        var s = scaleFactor();
-        return [(sx - state.panX) / s, (sy - state.panY) / s];
-      }
+      function toUser(sx, sy) { var s = scaleFactor(); return [(sx - state.panX) / s, (sy - state.panY) / s]; }
 
       // ---- Apply state ----
       function applyColors() {
@@ -386,60 +364,76 @@
       }
       function recolorBars() {
         var kids = overlay.childNodes;
-        for (var i = 0; i < kids.length; i++) {
-          kids[i].setAttribute("fill", overlayColor(bars[i].c));
-        }
+        for (var i = 0; i < kids.length; i++) kids[i].setAttribute("fill", overlayColor(bars[i].c));
       }
 
       function sizeSvg() {
         var w = window.innerWidth, h = window.innerHeight;
-        art.setAttribute("width", w);
-        art.setAttribute("height", h);
+        art.setAttribute("width", w); art.setAttribute("height", h);
         art.setAttribute("viewBox", "0 0 " + w + " " + h);
       }
 
-      // ---- Place a bar centered on a user-space point ----
-      function addBarAt(ux, uy, sizeIdx, colorIdx) {
+      function addBarAtRaw(ux, uy, sizeIdx, colorIdx) {
         var th = DATA.bar.th, sh = DATA.bar.sh, h = DATA.bar.h, n = SIZES[sizeIdx];
-        // center-of-bar offset from D corner
         var cx = (th + sh) * n / 2, cy = -h * n / 2;
         var d = snap(ux - cx, uy - cy);
+        bars.push({ x: d[0], y: d[1], n: sizeIdx, c: colorIdx });
+      }
+      function addBarAt(ux, uy, sizeIdx, colorIdx) {
         var c = colorIdx;
         if (c < 0) { c = state.autoCounter % 3; state.autoCounter++; }
-        bars.push({ x: d[0], y: d[1], n: sizeIdx, c: c });
+        addBarAtRaw(ux, uy, sizeIdx, c);
         renderBars();
       }
 
-      // ---- Colour input wiring ----
-      function normHex(v) {
-        v = String(v).trim().replace(/^#/, "");
-        if (/^[0-9a-fA-F]{3}$/.test(v)) v = v[0] + v[0] + v[1] + v[1] + v[2] + v[2];
-        return /^[0-9a-fA-F]{6}$/.test(v) ? "#" + v.toLowerCase() : null;
+      // ---- Colour palette selectors ----
+      var refreshers = [];
+      function makePalette(containerId, labelId, slot, onChange) {
+        var container = document.getElementById(containerId);
+        var label = document.getElementById(labelId);
+        var custom, customInput, swatches = [];
+
+        function refresh() {
+          var cur = state[slot].toLowerCase();
+          var matched = false;
+          for (var i = 0; i < swatches.length; i++) {
+            var on = swatches[i].getAttribute("data-hex") === cur;
+            swatches[i].classList.toggle("active", on);
+            if (on) matched = true;
+          }
+          custom.classList.toggle("active", !matched);
+          custom.style.background = matched ? "" : state[slot];
+          customInput.value = state[slot];
+          label.textContent = state[slot].toUpperCase();
+        }
+
+        PALETTE.forEach(function (c) {
+          var sw = document.createElement("button");
+          sw.className = "sw"; sw.title = c.name + "  " + c.hex.toUpperCase();
+          sw.style.background = c.hex; sw.setAttribute("data-hex", c.hex.toLowerCase());
+          sw.addEventListener("click", function () { state[slot] = c.hex; onChange(); refresh(); });
+          container.appendChild(sw); swatches.push(sw);
+        });
+
+        custom = document.createElement("label");
+        custom.className = "sw custom"; custom.title = "Custom color";
+        customInput = document.createElement("input");
+        customInput.type = "color"; customInput.value = state[slot];
+        customInput.addEventListener("input", function () { state[slot] = customInput.value; onChange(); refresh(); });
+        custom.appendChild(customInput);
+        container.appendChild(custom);
+
+        refresh();
+        refreshers.push(refresh);
       }
 
-      function wireColor(key, swId, hxId, onChange) {
-        var sw = document.getElementById(swId), hx = document.getElementById(hxId);
-        function sync() { sw.value = state[key]; hx.value = state[key].replace("#", "").toUpperCase(); hx.classList.remove("invalid"); }
-        sw.addEventListener("input", function () {
-          state[key] = sw.value; hx.value = state[key].replace("#", "").toUpperCase(); hx.classList.remove("invalid"); onChange();
-        });
-        hx.addEventListener("input", function () {
-          var n = normHex(hx.value);
-          if (n) { hx.classList.remove("invalid"); state[key] = n; sw.value = n; onChange(); }
-          else hx.classList.add("invalid");
-        });
-        hx.addEventListener("blur", sync);
-        return sync;
-      }
-
-      var syncFns = [];
-      syncFns.push(wireColor("c1", "sw1", "hx1", applyColors));
-      syncFns.push(wireColor("c2", "sw2", "hx2", applyColors));
-      syncFns.push(wireColor("c3", "sw3", "hx3", applyColors));
-      syncFns.push(wireColor("o1", "osw1", "ohx1", recolorBars));
-      syncFns.push(wireColor("o2", "osw2", "ohx2", recolorBars));
-      syncFns.push(wireColor("o3", "osw3", "ohx3", recolorBars));
-      function syncAllColors() { syncFns.forEach(function (f) { f(); }); }
+      makePalette("pal_c1", "lbl_c1", "c1", applyColors);
+      makePalette("pal_c2", "lbl_c2", "c2", applyColors);
+      makePalette("pal_c3", "lbl_c3", "c3", applyColors);
+      makePalette("pal_o1", "lbl_o1", "o1", recolorBars);
+      makePalette("pal_o2", "lbl_o2", "o2", recolorBars);
+      makePalette("pal_o3", "lbl_o3", "o3", recolorBars);
+      function refreshPalettes() { refreshers.forEach(function (f) { f(); }); }
 
       // ---- Zoom ----
       var zoomInput = document.getElementById("zoom");
@@ -447,19 +441,14 @@
       function updateZoomReadout() { zoomReadout.textContent = Math.round(state.zoom) + "%"; }
       function setZoom(z, cx, cy) {
         z = Math.max(parseFloat(zoomInput.min), Math.min(parseFloat(zoomInput.max), z));
-        // keep the point under (cx,cy) fixed while zooming
         if (cx != null) {
           var before = toUser(cx, cy);
           state.zoom = z;
           var s = scaleFactor();
           state.panX = cx - before[0] * s;
           state.panY = cy - before[1] * s;
-        } else {
-          state.zoom = z;
-        }
-        zoomInput.value = z;
-        updateZoomReadout();
-        applyTransform();
+        } else state.zoom = z;
+        zoomInput.value = z; updateZoomReadout(); applyTransform();
       }
       zoomInput.addEventListener("input", function () { setZoom(parseFloat(zoomInput.value)); });
       document.getElementById("zoomIn").addEventListener("click", function () { setZoom(state.zoom * 1.2); });
@@ -470,10 +459,9 @@
       }, { passive: false });
 
       // ---- Pan + click-to-place ----
-      var pointerDown = false, moved = 0, lastX = 0, lastY = 0, downX = 0, downY = 0;
+      var pointerDown = false, moved = 0, lastX = 0, lastY = 0;
       art.addEventListener("pointerdown", function (e) {
-        pointerDown = true; moved = 0;
-        lastX = downX = e.clientX; lastY = downY = e.clientY;
+        pointerDown = true; moved = 0; lastX = e.clientX; lastY = e.clientY;
         art.setPointerCapture(e.pointerId);
       });
       art.addEventListener("pointermove", function (e) {
@@ -486,11 +474,9 @@
         applyTransform();
       });
       art.addEventListener("pointerup", function (e) {
-        pointerDown = false;
-        art.classList.remove("grabbing");
+        pointerDown = false; art.classList.remove("grabbing");
         if (art.hasPointerCapture && art.hasPointerCapture(e.pointerId)) art.releasePointerCapture(e.pointerId);
         if (moved <= 4) {
-          // treat as a click -> place a bar
           var u = toUser(e.clientX, e.clientY);
           addBarAt(u[0], u[1], state.clickSize, state.clickColor);
         }
@@ -517,43 +503,26 @@
         var tl = toUser(0, 0), br = toUser(w, h);
         var minX = Math.min(tl[0], br[0]), maxX = Math.max(tl[0], br[0]);
         var minY = Math.min(tl[1], br[1]), maxY = Math.max(tl[1], br[1]);
-        // Build a colour bag with exactly 1/3 each, then shuffle.
         var bag = [];
         for (var i = 0; i < n; i++) bag.push(i % 3);
         for (var j = bag.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var t = bag[j]; bag[j] = bag[r]; bag[r] = t; }
         for (var k = 0; k < n; k++) {
-          var ux = minX + Math.random() * (maxX - minX);
-          var uy = minY + Math.random() * (maxY - minY);
-          var size = Math.floor(Math.random() * 3);
-          addBarAtRaw(ux, uy, size, bag[k]);
+          addBarAtRaw(minX + Math.random() * (maxX - minX), minY + Math.random() * (maxY - minY), Math.floor(Math.random() * 3), bag[k]);
         }
         renderBars();
       });
-      // like addBarAt but without immediate re-render (batch)
-      function addBarAtRaw(ux, uy, sizeIdx, colorIdx) {
-        var th = DATA.bar.th, sh = DATA.bar.sh, h = DATA.bar.h, n = SIZES[sizeIdx];
-        var cx = (th + sh) * n / 2, cy = -h * n / 2;
-        var d = snap(ux - cx, uy - cy);
-        bars.push({ x: d[0], y: d[1], n: sizeIdx, c: colorIdx });
-      }
 
-      document.getElementById("undoBtn").addEventListener("click", function () {
-        bars.pop(); renderBars();
-      });
-      document.getElementById("clearBtn").addEventListener("click", function () {
-        bars.length = 0; renderBars();
-      });
+      document.getElementById("undoBtn").addEventListener("click", function () { bars.pop(); renderBars(); });
+      document.getElementById("clearBtn").addEventListener("click", function () { bars.length = 0; renderBars(); });
 
       // ---- Reset ----
       document.getElementById("resetBtn").addEventListener("click", function () {
         state.c1 = DEFAULTS.c1; state.c2 = DEFAULTS.c2; state.c3 = DEFAULTS.c3;
         state.o1 = DEFAULTS.o1; state.o2 = DEFAULTS.o2; state.o3 = DEFAULTS.o3;
-        state.zoom = DEFAULTS.zoom; state.panX = 0; state.panY = 0;
-        state.autoCounter = 0;
+        state.zoom = DEFAULTS.zoom; state.panX = 0; state.panY = 0; state.autoCounter = 0;
         bars.length = 0;
-        syncAllColors();
-        zoomInput.value = DEFAULTS.zoom;
-        updateZoomReadout();
+        refreshPalettes();
+        zoomInput.value = DEFAULTS.zoom; updateZoomReadout();
         applyColors(); applyTransform(); renderBars();
       });
 
@@ -567,8 +536,7 @@
         var uri = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(xml)));
         var img = new Image();
         img.onload = function () {
-          var out = 2;
-          var cv = document.createElement("canvas");
+          var out = 2, cv = document.createElement("canvas");
           cv.width = w * out; cv.height = h * out;
           cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
           var link = document.createElement("a");
@@ -590,12 +558,7 @@
       });
 
       // ---- Init ----
-      syncAllColors();
-      sizeSvg();
-      applyColors();
-      applyTransform();
-      updateZoomReadout();
-      renderBars();
+      sizeSvg(); applyColors(); applyTransform(); updateZoomReadout(); renderBars();
     })();
   </script>
 </body>
