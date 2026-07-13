@@ -256,24 +256,24 @@
     <div class="group">
       <span class="section-label">Colors</span>
       <div class="color-row">
-        <input type="color" id="color1" value="#1b2559" aria-label="Base color" />
+        <input type="color" id="color1" value="#16193f" aria-label="Stripe color" />
         <div class="meta">
-          <span class="name">Base</span>
-          <span class="hex" id="hex1">#1B2559</span>
+          <span class="name">Stripe</span>
+          <span class="hex" id="hex1">#16193F</span>
         </div>
       </div>
       <div class="color-row">
-        <input type="color" id="color2" value="#232e6b" aria-label="Tone A" />
+        <input type="color" id="color2" value="#2c3769" aria-label="Band A" />
         <div class="meta">
-          <span class="name">Tone A</span>
-          <span class="hex" id="hex2">#232E6B</span>
+          <span class="name">Band A</span>
+          <span class="hex" id="hex2">#2C3769</span>
         </div>
       </div>
       <div class="color-row">
-        <input type="color" id="color3" value="#161d47" aria-label="Tone B" />
+        <input type="color" id="color3" value="#242f5e" aria-label="Band B" />
         <div class="meta">
-          <span class="name">Tone B</span>
-          <span class="hex" id="hex3">#161D47</span>
+          <span class="name">Band B</span>
+          <span class="hex" id="hex3">#242F5E</span>
         </div>
       </div>
     </div>
@@ -282,7 +282,7 @@
       <label for="zoom">Zoom / Scale</label>
       <div class="zoom-control">
         <button class="btn" id="zoomOut" aria-label="Zoom out">&minus;</button>
-        <input type="range" id="zoom" min="8" max="140" step="1" value="34" />
+        <input type="range" id="zoom" min="14" max="170" step="1" value="46" />
         <button class="btn" id="zoomIn" aria-label="Zoom in">+</button>
       </div>
       <div class="zoom-readout" id="zoomReadout">100%</div>
@@ -308,26 +308,29 @@
 
       // ---- State ----
       var DEFAULTS = {
-        color1: "#1b2559", // base
-        color2: "#232e6b", // tone A (lighter)
-        color3: "#161d47", // tone B (darker)
-        zoom: 34
+        color1: "#16193f", // dark navy stripe
+        color2: "#2c3769", // mid (lighter)
+        color3: "#242f5e", // mid (darker)
+        zoom: 46
       };
 
       var state = {
         color1: DEFAULTS.color1,
         color2: DEFAULTS.color2,
         color3: DEFAULTS.color3,
-        zoom: DEFAULTS.zoom, // base unit size in px
+        zoom: DEFAULTS.zoom, // brick height in px
         offsetX: 0,
         offsetY: 0
       };
 
       // ---- Pattern geometry ----
       // Reference zoom that maps to "100%"
-      var BASE_UNIT = 34;
-      // Slant angle of the diagonal dashes (degrees from horizontal).
-      var ANGLE_DEG = 60;
+      var BASE_UNIT = 46;
+      // Brick width : height ratio. 2 gives a 45deg diagonal in running bond.
+      var ASPECT = 2;
+      // Colour sequence across diagonal bands (indices into [c1, c2, c3]).
+      // dark -> lighter mid -> darker mid, repeating: a stepped ribbon.
+      var BAND_SEQ = [0, 1, 2];
 
       function draw() {
         var dpr = window.devicePixelRatio || 1;
@@ -340,66 +343,47 @@
         canvas.style.height = H + "px";
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        // Base fill
+        // Base fill (avoids any hairline gaps between bricks).
         ctx.fillStyle = state.color1;
         ctx.fillRect(0, 0, W, H);
 
-        var u = state.zoom; // unit scale in px
+        // Running-bond brick grid. Every other row is offset by half a brick,
+        // and each brick is coloured by its diagonal band so that like-coloured
+        // bricks form continuous stepped "/" stripes.
+        var bh = state.zoom;        // brick height
+        var bw = bh * ASPECT;       // brick width
+        var palette = [state.color1, state.color2, state.color3];
+        var P = BAND_SEQ.length;
 
-        // Brick dimensions (in rotated space)
-        var brickW = u * 1.9;
-        var brickH = u * 0.62;
-        var gapX = u * 0.42;   // horizontal mortar (base shows through)
-        var gapY = u * 0.30;   // vertical mortar
-        var stepX = brickW + gapX;
-        var stepY = brickH + gapY;
+        var ox = state.offsetX;
+        var oy = state.offsetY;
 
-        var angle = (ANGLE_DEG * Math.PI) / 180;
+        // Logical brick indices covering the (panned) viewport, with a margin.
+        var c0 = Math.floor(ox / bw) - 2;
+        var c1 = Math.ceil((ox + W) / bw) + 2;
+        var r0 = Math.floor(oy / bh) - 2;
+        var r1 = Math.ceil((oy + H) / bh) + 2;
 
-        // We draw in a rotated coordinate frame. To cover the whole viewport
-        // after rotation, tile across a region large enough to span the
-        // diagonal of the screen in both directions.
-        var diag = Math.sqrt(W * W + H * H);
-        var pad = Math.max(brickW, brickH) * 2 + Math.max(Math.abs(state.offsetX), Math.abs(state.offsetY));
-        var reach = diag + pad;
+        for (var r = r0; r <= r1; r++) {
+          var odd = r & 1;
+          var yScreen = r * bh - oy;
 
-        ctx.save();
-        ctx.translate(W / 2, H / 2);
-        ctx.rotate(angle);
-        ctx.translate(-state.offsetX, -state.offsetY);
+          for (var c = c0; c <= c1; c++) {
+            var xWorld = c * bw + (odd ? bw / 2 : 0);
+            var xScreen = xWorld - ox;
 
-        var cols = Math.ceil((2 * reach) / stepX) + 2;
-        var rows = Math.ceil((2 * reach) / stepY) + 2;
+            // Diagonal band index. In running bond the brick centres form a
+            // centred-rectangular lattice; (a + r) is constant along a "/"
+            // diagonal, so it selects the stripe a brick belongs to.
+            var a = 2 * c + 1 + odd;
+            var k = Math.floor((a + r - 1) / 2);
+            var band = ((k % P) + P) % P;
 
-        var startCol = -Math.ceil(cols / 2);
-        var endCol = Math.ceil(cols / 2);
-        var startRow = -Math.ceil(rows / 2);
-        var endRow = Math.ceil(rows / 2);
-
-        for (var r = startRow; r <= endRow; r++) {
-          // Stagger every other row by half a brick -> classic brick weave.
-          var rowShift = (r & 1) ? stepX / 2 : 0;
-          var y = r * stepY;
-
-          for (var c = startCol; c <= endCol; c++) {
-            var x = c * stepX + rowShift;
-
-            // Colour selection: alternating diagonal bands of Tone A / Tone B.
-            // Using (2c - r) creates diagonal stripes of like-coloured bricks.
-            var band = ((2 * c - r) % 4 + 4) % 4;
-            var fill;
-            if (band === 0 || band === 1) {
-              fill = state.color2; // Tone A
-            } else {
-              fill = state.color3; // Tone B
-            }
-
-            ctx.fillStyle = fill;
-            ctx.fillRect(x, y, brickW, brickH);
+            ctx.fillStyle = palette[BAND_SEQ[band]];
+            // +1px overlap keeps neighbouring bricks seam-free.
+            ctx.fillRect(xScreen, yScreen, bw + 1, bh + 1);
           }
         }
-
-        ctx.restore();
       }
 
       // ---- UI wiring ----
@@ -468,11 +452,8 @@
         var dy = e.clientY - lastY;
         lastX = e.clientX;
         lastY = e.clientY;
-        // Convert screen delta into the rotated pattern frame.
-        var a = (ANGLE_DEG * Math.PI) / 180;
-        var cos = Math.cos(a), sin = Math.sin(a);
-        state.offsetX -= dx * cos + dy * sin;
-        state.offsetY -= -dx * sin + dy * cos;
+        state.offsetX -= dx;
+        state.offsetY -= dy;
         draw();
       });
       function endDrag(e) {
