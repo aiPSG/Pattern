@@ -11,8 +11,13 @@ artwork is rendered to a canvas — seamless, recolorable, and **sharp at any zo
   colors plus the tones in use), or via a **Custom** picker for anything else.
   All six colors are set independently.
 - **Zoom / scale** — slider, `+` / `−` buttons, or mouse-wheel (up to 2400%);
-  the wheel zooms toward the cursor. The pattern stays crisp at every zoom level.
+  zoom always pivots on the centre of the screen. The pattern stays crisp at
+  every zoom level.
 - **Pan** — drag to move the pattern.
+- **Lock zoom & pan** — freeze the view (zoom + pan disabled) while still placing
+  and editing bars.
+- **Color schemes** — save the current six colours (3 pattern + 3 overlay) under
+  a name and re-apply or delete them later; saved schemes persist in the browser.
 - **Overlay bars** — larger copies of the pattern's base element (the slanted
   bar) that **snap precisely onto the lattice**:
   - three discrete sizes (S / M / L),
