@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pattern Generator</title>
+  <style>
+    :root {
+      --panel-bg: rgba(20, 22, 34, 0.82);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --text: #e8eaf2;
+      --text-dim: #9aa0b4;
+      --accent: #5b8cff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: #0b0d18;
+    }
+
+    #stage {
+      position: fixed;
+      inset: 0;
+    }
+
+    #pattern {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+
+    /* ---- Control panel ---- */
+    #panel {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      width: 268px;
+      max-height: calc(100vh - 36px);
+      overflow-y: auto;
+      padding: 18px 18px 20px;
+      border-radius: 14px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: var(--text);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+      z-index: 10;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    #panel.collapsed {
+      transform: translateX(calc(-100% - 24px));
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #panel h1 {
+      margin: 0 0 2px;
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: 0.2px;
+    }
+
+    #panel .subtitle {
+      margin: 0 0 16px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    .group > label,
+    .section-label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      margin-bottom: 9px;
+    }
+
+    /* Color rows */
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 9px;
+    }
+
+    .color-row input[type="color"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 1px solid var(--panel-border);
+      border-radius: 9px;
+      background: none;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+    .color-row input[type="color"]::-webkit-color-swatch-wrapper { padding: 3px; }
+    .color-row input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
+    .color-row input[type="color"]::-moz-color-swatch { border: none; border-radius: 6px; }
+
+    .color-row .meta {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.25;
+    }
+    .color-row .meta .name { font-size: 13px; }
+    .color-row .meta .hex {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+      text-transform: uppercase;
+    }
+
+    /* Zoom control */
+    .zoom-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .zoom-control input[type="range"] {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.18);
+      outline: none;
+    }
+    .zoom-control input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid #dfe6ff;
+    }
+    .zoom-control input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid #dfe6ff;
+    }
+
+    .btn {
+      -webkit-appearance: none;
+      appearance: none;
+      border: 1px solid var(--panel-border);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border-radius: 8px;
+      width: 30px;
+      height: 30px;
+      font-size: 17px;
+      line-height: 1;
+      cursor: pointer;
+      flex: 0 0 auto;
+      transition: background 0.15s ease;
+    }
+    .btn:hover { background: rgba(255, 255, 255, 0.14); }
+    .btn:active { transform: translateY(1px); }
+
+    .zoom-readout {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .text-btn {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      border: 1px solid var(--panel-border);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 9px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .text-btn:hover { background: rgba(255, 255, 255, 0.14); }
+    .text-btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+    .text-btn.primary:hover { background: #4a7bf0; }
+
+    .hint {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+
+    /* Panel toggle button */
+    #toggle {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      z-index: 11;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--panel-border);
+      background: var(--panel-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: var(--text);
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    #panel.collapsed ~ #toggle { display: flex; }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="pattern"></canvas>
+  </div>
+
+  <div id="panel">
+    <h1>Pattern Generator</h1>
+    <p class="subtitle">Diagonal weave &middot; three tones</p>
+
+    <div class="group">
+      <span class="section-label">Colors</span>
+      <div class="color-row">
+        <input type="color" id="color1" value="#1b2559" aria-label="Base color" />
+        <div class="meta">
+          <span class="name">Base</span>
+          <span class="hex" id="hex1">#1B2559</span>
+        </div>
+      </div>
+      <div class="color-row">
+        <input type="color" id="color2" value="#232e6b" aria-label="Tone A" />
+        <div class="meta">
+          <span class="name">Tone A</span>
+          <span class="hex" id="hex2">#232E6B</span>
+        </div>
+      </div>
+      <div class="color-row">
+        <input type="color" id="color3" value="#161d47" aria-label="Tone B" />
+        <div class="meta">
+          <span class="name">Tone B</span>
+          <span class="hex" id="hex3">#161D47</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <label for="zoom">Zoom / Scale</label>
+      <div class="zoom-control">
+        <button class="btn" id="zoomOut" aria-label="Zoom out">&minus;</button>
+        <input type="range" id="zoom" min="8" max="140" step="1" value="34" />
+        <button class="btn" id="zoomIn" aria-label="Zoom in">+</button>
+      </div>
+      <div class="zoom-readout" id="zoomReadout">100%</div>
+    </div>
+
+    <div class="group">
+      <div class="row-actions">
+        <button class="text-btn" id="resetBtn">Reset</button>
+        <button class="text-btn primary" id="downloadBtn">Save PNG</button>
+      </div>
+      <p class="hint">Scroll to zoom &middot; drag to shift the pattern.</p>
+    </div>
+  </div>
+
+  <button id="toggle" aria-label="Show controls">&#9776;</button>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var canvas = document.getElementById("pattern");
+      var ctx = canvas.getContext("2d");
+
+      // ---- State ----
+      var DEFAULTS = {
+        color1: "#1b2559", // base
+        color2: "#232e6b", // tone A (lighter)
+        color3: "#161d47", // tone B (darker)
+        zoom: 34
+      };
+
+      var state = {
+        color1: DEFAULTS.color1,
+        color2: DEFAULTS.color2,
+        color3: DEFAULTS.color3,
+        zoom: DEFAULTS.zoom, // base unit size in px
+        offsetX: 0,
+        offsetY: 0
+      };
+
+      // ---- Pattern geometry ----
+      // Reference zoom that maps to "100%"
+      var BASE_UNIT = 34;
+      // Slant angle of the diagonal dashes (degrees from horizontal).
+      var ANGLE_DEG = 60;
+
+      function draw() {
+        var dpr = window.devicePixelRatio || 1;
+        var W = window.innerWidth;
+        var H = window.innerHeight;
+
+        canvas.width = Math.round(W * dpr);
+        canvas.height = Math.round(H * dpr);
+        canvas.style.width = W + "px";
+        canvas.style.height = H + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        // Base fill
+        ctx.fillStyle = state.color1;
+        ctx.fillRect(0, 0, W, H);
+
+        var u = state.zoom; // unit scale in px
+
+        // Brick dimensions (in rotated space)
+        var brickW = u * 1.9;
+        var brickH = u * 0.62;
+        var gapX = u * 0.42;   // horizontal mortar (base shows through)
+        var gapY = u * 0.30;   // vertical mortar
+        var stepX = brickW + gapX;
+        var stepY = brickH + gapY;
+
+        var angle = (ANGLE_DEG * Math.PI) / 180;
+
+        // We draw in a rotated coordinate frame. To cover the whole viewport
+        // after rotation, tile across a region large enough to span the
+        // diagonal of the screen in both directions.
+        var diag = Math.sqrt(W * W + H * H);
+        var pad = Math.max(brickW, brickH) * 2 + Math.max(Math.abs(state.offsetX), Math.abs(state.offsetY));
+        var reach = diag + pad;
+
+        ctx.save();
+        ctx.translate(W / 2, H / 2);
+        ctx.rotate(angle);
+        ctx.translate(-state.offsetX, -state.offsetY);
+
+        var cols = Math.ceil((2 * reach) / stepX) + 2;
+        var rows = Math.ceil((2 * reach) / stepY) + 2;
+
+        var startCol = -Math.ceil(cols / 2);
+        var endCol = Math.ceil(cols / 2);
+        var startRow = -Math.ceil(rows / 2);
+        var endRow = Math.ceil(rows / 2);
+
+        for (var r = startRow; r <= endRow; r++) {
+          // Stagger every other row by half a brick -> classic brick weave.
+          var rowShift = (r & 1) ? stepX / 2 : 0;
+          var y = r * stepY;
+
+          for (var c = startCol; c <= endCol; c++) {
+            var x = c * stepX + rowShift;
+
+            // Colour selection: alternating diagonal bands of Tone A / Tone B.
+            // Using (2c - r) creates diagonal stripes of like-coloured bricks.
+            var band = ((2 * c - r) % 4 + 4) % 4;
+            var fill;
+            if (band === 0 || band === 1) {
+              fill = state.color2; // Tone A
+            } else {
+              fill = state.color3; // Tone B
+            }
+
+            ctx.fillStyle = fill;
+            ctx.fillRect(x, y, brickW, brickH);
+          }
+        }
+
+        ctx.restore();
+      }
+
+      // ---- UI wiring ----
+      function toHexUpper(v) { return v.toUpperCase(); }
+
+      function updateZoomReadout() {
+        var pct = Math.round((state.zoom / BASE_UNIT) * 100);
+        document.getElementById("zoomReadout").textContent = pct + "%";
+      }
+
+      function bindColor(inputId, hexId, key) {
+        var input = document.getElementById(inputId);
+        var hex = document.getElementById(hexId);
+        input.addEventListener("input", function () {
+          state[key] = input.value;
+          hex.textContent = toHexUpper(input.value);
+          draw();
+        });
+      }
+
+      bindColor("color1", "hex1", "color1");
+      bindColor("color2", "hex2", "color2");
+      bindColor("color3", "hex3", "color3");
+
+      var zoomInput = document.getElementById("zoom");
+      zoomInput.addEventListener("input", function () {
+        state.zoom = parseFloat(zoomInput.value);
+        updateZoomReadout();
+        draw();
+      });
+
+      function setZoom(z) {
+        z = Math.max(parseFloat(zoomInput.min), Math.min(parseFloat(zoomInput.max), z));
+        state.zoom = z;
+        zoomInput.value = z;
+        updateZoomReadout();
+        draw();
+      }
+
+      document.getElementById("zoomIn").addEventListener("click", function () {
+        setZoom(state.zoom + 6);
+      });
+      document.getElementById("zoomOut").addEventListener("click", function () {
+        setZoom(state.zoom - 6);
+      });
+
+      // Scroll to zoom
+      canvas.addEventListener("wheel", function (e) {
+        e.preventDefault();
+        var delta = e.deltaY < 0 ? 1 : -1;
+        setZoom(state.zoom + delta * Math.max(2, state.zoom * 0.08));
+      }, { passive: false });
+
+      // Drag to pan the pattern
+      var dragging = false, lastX = 0, lastY = 0;
+      canvas.addEventListener("pointerdown", function (e) {
+        dragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        canvas.style.cursor = "grabbing";
+        canvas.setPointerCapture(e.pointerId);
+      });
+      canvas.addEventListener("pointermove", function (e) {
+        if (!dragging) return;
+        var dx = e.clientX - lastX;
+        var dy = e.clientY - lastY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        // Convert screen delta into the rotated pattern frame.
+        var a = (ANGLE_DEG * Math.PI) / 180;
+        var cos = Math.cos(a), sin = Math.sin(a);
+        state.offsetX -= dx * cos + dy * sin;
+        state.offsetY -= -dx * sin + dy * cos;
+        draw();
+      });
+      function endDrag(e) {
+        dragging = false;
+        canvas.style.cursor = "grab";
+        if (e && e.pointerId != null && canvas.hasPointerCapture && canvas.hasPointerCapture(e.pointerId)) {
+          canvas.releasePointerCapture(e.pointerId);
+        }
+      }
+      canvas.addEventListener("pointerup", endDrag);
+      canvas.addEventListener("pointercancel", endDrag);
+
+      // Reset
+      document.getElementById("resetBtn").addEventListener("click", function () {
+        state.color1 = DEFAULTS.color1;
+        state.color2 = DEFAULTS.color2;
+        state.color3 = DEFAULTS.color3;
+        state.zoom = DEFAULTS.zoom;
+        state.offsetX = 0;
+        state.offsetY = 0;
+        document.getElementById("color1").value = DEFAULTS.color1;
+        document.getElementById("color2").value = DEFAULTS.color2;
+        document.getElementById("color3").value = DEFAULTS.color3;
+        document.getElementById("hex1").textContent = toHexUpper(DEFAULTS.color1);
+        document.getElementById("hex2").textContent = toHexUpper(DEFAULTS.color2);
+        document.getElementById("hex3").textContent = toHexUpper(DEFAULTS.color3);
+        zoomInput.value = DEFAULTS.zoom;
+        updateZoomReadout();
+        draw();
+      });
+
+      // Download PNG
+      document.getElementById("downloadBtn").addEventListener("click", function () {
+        var link = document.createElement("a");
+        link.download = "pattern.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
+
+      // Panel collapse
+      var panel = document.getElementById("panel");
+      var toggle = document.getElementById("toggle");
+      // Clicking the header area toggles nothing; provide toggle button only.
+      toggle.addEventListener("click", function () {
+        panel.classList.remove("collapsed");
+      });
+      // Add a small collapse affordance: double-click panel title to hide.
+      panel.querySelector("h1").addEventListener("dblclick", function () {
+        panel.classList.add("collapsed");
+      });
+
+      // Redraw on resize
+      var resizeTimer = null;
+      window.addEventListener("resize", function () {
+        if (resizeTimer) cancelAnimationFrame(resizeTimer);
+        resizeTimer = requestAnimationFrame(draw);
+      });
+
+      updateZoomReadout();
+      draw();
+    })();
+  </script>
+</body>
+</html>
