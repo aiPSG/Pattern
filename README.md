@@ -6,8 +6,10 @@ step, no dependencies.
 
 ## Features
 
-- **Three configurable pattern colors** — each of the pattern's tones can be set
-  via a color-picker swatch **or** by typing a hex value (`#RRGGBB` / `#RGB`).
+- **Configurable colors from a brand palette** — the three pattern tones and the
+  three overlay-bar colors are each chosen from a swatch palette (the DB brand
+  colors plus the tones in use), or via a **Custom** picker for anything else.
+  All six colors are set independently.
 - **Zoom / scale** — slider, `+` / `−` buttons, or mouse-wheel (up to 2400%);
   the wheel zooms toward the cursor.
 - **Pan** — drag to move the pattern.
