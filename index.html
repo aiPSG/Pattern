@@ -134,6 +134,7 @@
         <button class="btn" id="zoomIn" aria-label="Zoom in">+</button>
       </div>
       <div class="zoom-readout" id="zoomReadout">100%</div>
+      <button class="text-btn" id="lockBtn" style="width:100%;margin-top:8px">🔓 Lock zoom &amp; pan</button>
     </div>
 
     <div class="group">
@@ -177,6 +178,22 @@
         <button class="text-btn" id="clearBtn">Clear bars</button>
       </div>
       <p class="hint">Click empty canvas to place a bar. Click a bar to recolor / delete it. Drag to pan.</p>
+    </div>
+
+    <hr class="sep" />
+
+    <div class="group">
+      <span class="section-label">Color schemes</span>
+      <div class="inline" style="margin-bottom:8px">
+        <input type="text" id="schemeName" placeholder="Scheme name" spellcheck="false"
+               style="flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--panel-border);color:var(--text);border-radius:7px;padding:8px;font-size:13px;outline:none" />
+        <button class="text-btn" id="schemeSave" style="flex:0 0 auto;width:70px">Save</button>
+      </div>
+      <select class="styled" id="schemeSel" style="margin-bottom:8px"><option value="">Saved schemes…</option></select>
+      <div class="row-actions">
+        <button class="text-btn" id="schemeApply">Apply</button>
+        <button class="text-btn" id="schemeDelete">Delete</button>
+      </div>
     </div>
 
     <hr class="sep" />
@@ -226,7 +243,7 @@
         c1: DEFAULTS.c1, c2: DEFAULTS.c2, c3: DEFAULTS.c3,
         o1: DEFAULTS.o1, o2: DEFAULTS.o2, o3: DEFAULTS.o3,
         zoom: 100, panX: 0, panY: 0,
-        clickSize: 1, clickColor: -1, autoCounter: 0, mask: null
+        clickSize: 1, clickColor: -1, autoCounter: 0, mask: null, locked: false
       };
       var bars = []; // { x, y, n, c, color(null|hex) }
 
@@ -435,21 +452,31 @@
       slotPal("pal_o3", "lbl_o3", "o3", scheduleRender);
       function refreshPalettes() { refreshers.forEach(function (f) { f(); }); }
 
-      // ---- Zoom ----
+      // ---- Zoom (always pivots on the centre of the screen) ----
       var zoomInput = document.getElementById("zoom"), zoomReadout = document.getElementById("zoomReadout");
       function updateZoomReadout() { zoomReadout.textContent = Math.round(state.zoom) + "%"; }
-      function setZoom(z, cx, cy) {
+      function setZoom(z) {
+        if (state.locked) return;
         z = Math.max(+zoomInput.min, Math.min(+zoomInput.max, z));
-        if (cx != null) {
-          var before = toUser(cx, cy); state.zoom = z; var s = scaleFactor();
-          state.panX = cx - before[0] * s; state.panY = cy - before[1] * s;
-        } else state.zoom = z;
+        var cx = W / 2, cy = H / 2;
+        var before = toUser(cx, cy); state.zoom = z; var s = scaleFactor();
+        state.panX = cx - before[0] * s; state.panY = cy - before[1] * s;
         zoomInput.value = z; updateZoomReadout(); scheduleRender();
       }
-      zoomInput.addEventListener("input", function () { setZoom(+zoomInput.value); });
+      zoomInput.addEventListener("input", function () { if (state.locked) { zoomInput.value = state.zoom; return; } setZoom(+zoomInput.value); });
       document.getElementById("zoomIn").addEventListener("click", function () { setZoom(state.zoom * 1.2); });
       document.getElementById("zoomOut").addEventListener("click", function () { setZoom(state.zoom / 1.2); });
-      canvas.addEventListener("wheel", function (e) { e.preventDefault(); setZoom(state.zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1), e.clientX, e.clientY); }, { passive: false });
+      canvas.addEventListener("wheel", function (e) { if (state.locked) return; e.preventDefault(); setZoom(state.zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)); }, { passive: false });
+
+      // ---- Lock zoom & pan ----
+      var lockBtn = document.getElementById("lockBtn");
+      function updateLockUI() {
+        lockBtn.textContent = (state.locked ? "🔒 View locked" : "🔓 Lock zoom & pan");
+        lockBtn.classList.toggle("primary", state.locked);
+        zoomInput.disabled = state.locked;
+        zoomInput.style.opacity = state.locked ? "0.5" : "";
+      }
+      lockBtn.addEventListener("click", function () { state.locked = !state.locked; updateLockUI(); });
 
       // ---- Pointer: pan / place / edit ----
       var pDown = false, moved = 0, lastX = 0, lastY = 0;
@@ -460,6 +487,7 @@
       canvas.addEventListener("pointermove", function (e) {
         if (!pDown) return;
         var dx = e.clientX - lastX, dy = e.clientY - lastY; moved += Math.abs(dx) + Math.abs(dy);
+        if (state.locked) { lastX = e.clientX; lastY = e.clientY; return; } // no panning when locked
         if (moved > 4) canvas.classList.add("grabbing");
         state.panX += dx; state.panY += dy; lastX = e.clientX; lastY = e.clientY; scheduleRender();
       });
@@ -533,9 +561,50 @@
       document.getElementById("resetBtn").addEventListener("click", function () {
         state.c1 = DEFAULTS.c1; state.c2 = DEFAULTS.c2; state.c3 = DEFAULTS.c3;
         state.o1 = DEFAULTS.o1; state.o2 = DEFAULTS.o2; state.o3 = DEFAULTS.o3;
-        state.zoom = 100; state.panX = 0; state.panY = 0; state.autoCounter = 0; state.mask = null;
+        state.zoom = 100; state.panX = 0; state.panY = 0; state.autoCounter = 0; state.mask = null; state.locked = false;
         bars.length = 0; document.getElementById("maskSel").value = "";
-        refreshPalettes(); zoomInput.value = 100; updateZoomReadout(); closeBarMenu(); scheduleRender();
+        refreshPalettes(); buildTileRaster(); zoomInput.value = 100; updateZoomReadout(); updateLockUI(); closeBarMenu(); scheduleRender();
+      });
+
+      // ---- Colour schemes (persisted in localStorage) ----
+      var SKEY = "patternColorSchemes";
+      var schemeSel = document.getElementById("schemeSel");
+      var schemeName = document.getElementById("schemeName");
+      function loadSchemes() { try { return JSON.parse(localStorage.getItem(SKEY)) || []; } catch (e) { return []; } }
+      function storeSchemes(list) { try { localStorage.setItem(SKEY, JSON.stringify(list)); } catch (e) {} }
+      function refreshSchemeList(selectName) {
+        var list = loadSchemes();
+        schemeSel.innerHTML = '<option value="">Saved schemes…</option>';
+        list.forEach(function (s) {
+          var o = document.createElement("option");
+          o.value = s.name; o.textContent = s.name; schemeSel.appendChild(o);
+        });
+        if (selectName) schemeSel.value = selectName;
+      }
+      function applyScheme(s) {
+        state.c1 = s.c1; state.c2 = s.c2; state.c3 = s.c3;
+        state.o1 = s.o1; state.o2 = s.o2; state.o3 = s.o3;
+        refreshPalettes(); buildTileRaster(); scheduleRender();
+      }
+      document.getElementById("schemeSave").addEventListener("click", function () {
+        var name = (schemeName.value || "").trim();
+        if (!name) { schemeName.focus(); return; }
+        var list = loadSchemes().filter(function (s) { return s.name !== name; });
+        list.push({ name: name, c1: state.c1, c2: state.c2, c3: state.c3, o1: state.o1, o2: state.o2, o3: state.o3 });
+        storeSchemes(list); refreshSchemeList(name); schemeName.value = "";
+      });
+      document.getElementById("schemeApply").addEventListener("click", function () {
+        var s = loadSchemes().filter(function (x) { return x.name === schemeSel.value; })[0];
+        if (s) applyScheme(s);
+      });
+      schemeSel.addEventListener("change", function () {
+        var s = loadSchemes().filter(function (x) { return x.name === schemeSel.value; })[0];
+        if (s) applyScheme(s);
+      });
+      document.getElementById("schemeDelete").addEventListener("click", function () {
+        if (!schemeSel.value) return;
+        storeSchemes(loadSchemes().filter(function (s) { return s.name !== schemeSel.value; }));
+        refreshSchemeList();
       });
 
       // ---- Save PNG (respects aspect mask if set) ----
@@ -574,7 +643,8 @@
       window.addEventListener("resize", function () { resize(); scheduleRender(); });
 
       // ---- Init ----
-      resize(); refreshPalettes(); buildTileRaster(); updateZoomReadout(); render();
+      resize(); refreshPalettes(); buildTileRaster(); updateZoomReadout();
+      updateLockUI(); refreshSchemeList(); render();
     })();
   </script>
 </body>
