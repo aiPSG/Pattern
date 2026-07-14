@@ -13,19 +13,13 @@
       --accent: #5b8cff;
     }
     * { box-sizing: border-box; }
-    html, body {
-      margin: 0; padding: 0; height: 100%;
-      overflow: hidden;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: #0b0d18;
-    }
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #0b0d18; }
     #stage { position: fixed; inset: 0; }
     #view { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
     #view.grabbing { cursor: grabbing; }
 
-    /* ---- Control panel ---- */
     #panel {
-      position: fixed; top: 18px; left: 18px; width: 292px;
+      position: fixed; top: 18px; left: 18px; width: 296px;
       max-height: calc(100vh - 36px); overflow-y: auto;
       padding: 16px 18px 20px; border-radius: 14px;
       background: var(--panel-bg); border: 1px solid var(--panel-border);
@@ -34,15 +28,10 @@
       z-index: 10; transition: transform 0.25s ease, opacity 0.25s ease;
     }
     #panel.hidden { transform: translateX(calc(-100% - 24px)); opacity: 0; pointer-events: none; }
-
     .panel-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
     #panel h1 { margin: 0; font-size: 16px; font-weight: 650; }
     #panel .subtitle { margin: 2px 0 0; font-size: 12px; color: var(--text-dim); }
-    #closeBtn {
-      -webkit-appearance: none; appearance: none; border: 1px solid var(--panel-border);
-      background: rgba(255,255,255,0.06); color: var(--text-dim); border-radius: 8px;
-      width: 28px; height: 28px; cursor: pointer; font-size: 15px; line-height: 1; flex: 0 0 auto;
-    }
+    #closeBtn { -webkit-appearance: none; appearance: none; border: 1px solid var(--panel-border); background: rgba(255,255,255,0.06); color: var(--text-dim); border-radius: 8px; width: 28px; height: 28px; cursor: pointer; font-size: 15px; line-height: 1; flex: 0 0 auto; }
     #closeBtn:hover { background: rgba(255,255,255,0.14); color: var(--text); }
 
     .group { margin-bottom: 18px; }
@@ -55,14 +44,13 @@
     .cslot-head .hex { font-size: 10.5px; color: var(--text-dim); font-variant-numeric: tabular-nums; text-transform: uppercase; }
 
     .pal { display: flex; flex-wrap: wrap; gap: 7px; }
-    .pal .sw {
-      width: 23px; height: 23px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.18);
-      cursor: pointer; position: relative; padding: 0; transition: transform 0.1s ease;
-    }
+    .pal .sw { width: 23px; height: 23px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.18); cursor: pointer; position: relative; padding: 0; transition: transform 0.1s ease; }
     .pal .sw:hover { transform: scale(1.08); }
     .pal .sw.active { outline: 2px solid #fff; outline-offset: 1px; }
     .pal .sw.custom { background: conic-gradient(from 0deg, #ff4d4d, #ffd24d, #4dff88, #4dd2ff, #4d6bff, #d24dff, #ff4d4d); overflow: hidden; }
     .pal .sw.custom input[type="color"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; padding: 0; }
+    .pal.readonly .sw { cursor: default; }
+    .pal.readonly .sw:hover { transform: none; }
 
     .zoom-control { display: flex; align-items: center; gap: 10px; }
     .zoom-control input[type="range"] { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 3px; background: rgba(255, 255, 255, 0.18); outline: none; }
@@ -74,7 +62,7 @@
     .btn:hover { background: rgba(255, 255, 255, 0.14); }
 
     .seg { display: flex; gap: 6px; flex-wrap: wrap; }
-    .seg button { flex: 1; min-width: 40px; -webkit-appearance: none; appearance: none; border: 1px solid var(--panel-border); background: rgba(255, 255, 255, 0.06); color: var(--text-dim); border-radius: 8px; padding: 7px 4px; font-size: 12px; cursor: pointer; transition: all 0.15s ease; }
+    .seg button { flex: 1; min-width: 34px; -webkit-appearance: none; appearance: none; border: 1px solid var(--panel-border); background: rgba(255, 255, 255, 0.06); color: var(--text-dim); border-radius: 8px; padding: 7px 4px; font-size: 12px; cursor: pointer; transition: all 0.15s ease; }
     .seg button:hover { background: rgba(255, 255, 255, 0.12); }
     .seg button.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
     .field-label { font-size: 11px; color: var(--text-dim); margin: 0 0 6px; }
@@ -82,26 +70,21 @@
     select.styled { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--panel-border); color: var(--text); border-radius: 8px; padding: 8px; font-size: 13px; outline: none; cursor: pointer; }
 
     .inline { display: flex; align-items: center; gap: 8px; }
-    .inline input[type="number"] { width: 62px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--panel-border); color: var(--text); border-radius: 7px; padding: 7px 8px; font-size: 13px; outline: none; }
+    .inline input[type="number"], .inline input[type="text"] { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--panel-border); color: var(--text); border-radius: 7px; padding: 7px 8px; font-size: 13px; outline: none; }
 
     .row-actions { display: flex; gap: 8px; }
     .text-btn { flex: 1; -webkit-appearance: none; appearance: none; border: 1px solid var(--panel-border); background: rgba(255, 255, 255, 0.06); color: var(--text); border-radius: 8px; padding: 9px 8px; font-size: 12px; cursor: pointer; transition: background 0.15s ease; }
     .text-btn:hover { background: rgba(255, 255, 255, 0.14); }
     .text-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
     .text-btn.primary:hover { background: #4a7bf0; }
+    .text-btn.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
 
     .hint { font-size: 11px; color: var(--text-dim); line-height: 1.5; margin-top: 10px; }
 
     #toggle { position: fixed; top: 18px; left: 18px; z-index: 11; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--panel-border); background: var(--panel-bg); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); color: var(--text); cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
     #panel.hidden ~ #toggle { display: flex; }
 
-    /* Per-bar context menu */
-    #barMenu {
-      position: fixed; z-index: 20; width: 214px; padding: 12px;
-      border-radius: 12px; background: var(--panel-bg); border: 1px solid var(--panel-border);
-      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5); display: none;
-    }
+    #barMenu { position: fixed; z-index: 20; width: 214px; padding: 12px; border-radius: 12px; background: var(--panel-bg); border: 1px solid var(--panel-border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); display: none; }
     #barMenu.open { display: block; }
     #barMenu .title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dim); margin-bottom: 10px; display:flex; justify-content:space-between; }
     #barMenu .pal { margin-bottom: 10px; }
@@ -112,10 +95,7 @@
 
   <div id="panel">
     <div class="panel-head">
-      <div>
-        <h1>Pattern Generator</h1>
-        <p class="subtitle">DB diagonal pattern</p>
-      </div>
+      <div><h1>Pattern Generator</h1><p class="subtitle">DB diagonal pattern</p></div>
       <button id="closeBtn" title="Hide menu (M)">&times;</button>
     </div>
 
@@ -134,23 +114,21 @@
         <button class="btn" id="zoomIn" aria-label="Zoom in">+</button>
       </div>
       <div class="zoom-readout" id="zoomReadout">100%</div>
-      <button class="text-btn" id="lockBtn" style="width:100%;margin-top:8px">🔓 Lock zoom &amp; pan</button>
+      <div class="row-actions" style="margin-top:8px">
+        <button class="text-btn" id="lockZoomBtn">🔓 Zoom</button>
+        <button class="text-btn" id="lockPanBtn">🔓 Pan</button>
+      </div>
     </div>
 
     <div class="group">
       <span class="section-label">Aspect mask</span>
       <select class="styled" id="maskSel">
         <option value="">None</option>
-        <option value="21:9">21 : 9</option>
-        <option value="16:9">16 : 9</option>
-        <option value="3:2">3 : 2</option>
-        <option value="4:3">4 : 3</option>
-        <option value="5:4">5 : 4</option>
-        <option value="1:1">1 : 1</option>
-        <option value="4:5">4 : 5</option>
-        <option value="3:4">3 : 4</option>
-        <option value="2:3">2 : 3</option>
-        <option value="9:16">9 : 16</option>
+        <option value="21:9">21 : 9</option><option value="16:9">16 : 9</option>
+        <option value="3:2">3 : 2</option><option value="4:3">4 : 3</option>
+        <option value="5:4">5 : 4</option><option value="1:1">1 : 1</option>
+        <option value="4:5">4 : 5</option><option value="3:4">3 : 4</option>
+        <option value="2:3">2 : 3</option><option value="9:16">9 : 16</option>
       </select>
     </div>
 
@@ -158,26 +136,36 @@
 
     <div class="group">
       <span class="section-label">Overlay bars</span>
-      <div class="cslot"><div class="cslot-head"><span class="name">Bar color A &middot; &#8531;</span><span class="hex" id="lbl_o1"></span></div><div class="pal" id="pal_o1"></div></div>
-      <div class="cslot"><div class="cslot-head"><span class="name">Bar color B &middot; &#8531;</span><span class="hex" id="lbl_o2"></span></div><div class="pal" id="pal_o2"></div></div>
-      <div class="cslot"><div class="cslot-head"><span class="name">Bar color C &middot; &#8531;</span><span class="hex" id="lbl_o3"></span></div><div class="pal" id="pal_o3"></div></div>
 
-      <p class="field-label" style="margin-top:14px">Click size</p>
+      <div class="cslot"><div class="cslot-head"><span class="name">Bar color (new bars)</span><span class="hex" id="lbl_bar"></span></div><div class="pal" id="pal_bar_default"></div></div>
+
+      <p class="field-label" style="margin-top:14px">Harmonious blue tones</p>
+      <div class="inline">
+        <div class="seg" id="toneCountSeg" style="flex:1"><button data-tc="2">2</button><button data-tc="3" class="active">3</button></div>
+        <button class="text-btn" id="genTonesBtn" style="flex:1.3">Generate ⟳</button>
+      </div>
+      <div class="pal readonly" id="tonesView" style="margin-top:8px"></div>
+
+      <p class="field-label" style="margin-top:14px">New-bar size</p>
       <div class="seg" id="sizeSeg"><button data-size="0">S</button><button data-size="1" class="active">M</button><button data-size="2">L</button></div>
 
-      <p class="field-label" style="margin-top:14px">Click color</p>
-      <div class="seg" id="colorSeg"><button data-col="0">A</button><button data-col="1">B</button><button data-col="2">C</button><button data-col="-1" class="active">Auto</button></div>
-
-      <p class="field-label" style="margin-top:14px">Scatter random</p>
+      <p class="field-label" style="margin-top:14px">Scatter layout</p>
+      <select class="styled" id="layoutSel" style="margin-bottom:8px">
+        <option value="thirds">Rule of thirds</option>
+        <option value="golden">Golden ratio</option>
+        <option value="spiral">Golden spiral</option>
+        <option value="center">Center-weighted</option>
+        <option value="even">Even</option>
+      </select>
       <div class="inline">
-        <input type="number" id="scatterCount" min="1" max="500" step="1" value="18" />
+        <input type="number" id="scatterCount" min="1" max="500" step="1" value="18" style="width:62px" />
         <button class="text-btn" id="scatterBtn" style="flex:1">Scatter</button>
       </div>
       <div class="row-actions" style="margin-top:10px">
         <button class="text-btn" id="undoBtn">Undo</button>
         <button class="text-btn" id="clearBtn">Clear bars</button>
       </div>
-      <p class="hint">Click empty canvas to place a bar. Click a bar to recolor / delete it. Drag to pan.</p>
+      <p class="hint">Click empty canvas to place a bar. Click a bar to recolor / delete it. Scatter respects the aspect mask. ⌘/Ctrl+Z to undo.</p>
     </div>
 
     <hr class="sep" />
@@ -185,8 +173,7 @@
     <div class="group">
       <span class="section-label">Color schemes</span>
       <div class="inline" style="margin-bottom:8px">
-        <input type="text" id="schemeName" placeholder="Scheme name" spellcheck="false"
-               style="flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--panel-border);color:var(--text);border-radius:7px;padding:8px;font-size:13px;outline:none" />
+        <input type="text" id="schemeName" placeholder="Scheme name" spellcheck="false" style="flex:1" />
         <button class="text-btn" id="schemeSave" style="flex:0 0 auto;width:70px">Save</button>
       </div>
       <select class="styled" id="schemeSel" style="margin-bottom:8px"><option value="">Saved schemes…</option></select>
@@ -235,315 +222,301 @@
       var canvas = document.getElementById("view");
       var ctx = canvas.getContext("2d");
 
-      var DEFAULTS = {
-        c1: DATA.colors.c1, c2: DATA.colors.c2, c3: DATA.colors.c3,
-        o1: DATA.colors.c3, o2: DATA.colors.c1, o3: DATA.colors.c2, zoom: 100
-      };
+      var DEFAULTS = { c1: DATA.colors.c1, c2: DATA.colors.c2, c3: DATA.colors.c3, barColor: "#1e2a78" };
       var state = {
         c1: DEFAULTS.c1, c2: DEFAULTS.c2, c3: DEFAULTS.c3,
-        o1: DEFAULTS.o1, o2: DEFAULTS.o2, o3: DEFAULTS.o3,
-        zoom: 100, panX: 0, panY: 0,
-        clickSize: 1, clickColor: -1, autoCounter: 0, mask: null, locked: false
+        barColor: DEFAULTS.barColor, tones: [DEFAULTS.barColor], toneCount: 3, seed: 1,
+        zoom: 100, panX: 0, panY: 0, clickSize: 1, mask: null,
+        lockZoom: false, lockPan: false, layout: "thirds"
       };
-      var bars = []; // { x, y, n, c, color(null|hex) }
+      var bars = []; // { x, y, n, color }
 
-      // ---- Build static Path2D for the tile (once) ----
+      // ---------- Colour maths ----------
+      function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+      function hslToHex(h, s, l) {
+        h = ((h % 360) + 360) % 360; s /= 100; l /= 100;
+        var c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0;
+        if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; } else if (h < 180) { g = c; b = x; }
+        else if (h < 240) { g = x; b = c; } else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
+        function hx(v) { return ("0" + Math.round((v + m) * 255).toString(16)).slice(-2); }
+        return "#" + hx(r) + hx(g) + hx(b);
+      }
+      // Blue tones that read on the navy pattern (contrast via lightness) yet stay in-family.
+      function generateTones(count, seed) {
+        var rng = mulberry32(seed);
+        var baseHue = 200 + rng() * 34;            // blue family: 200–234
+        var ls = count === 2 ? [46 + rng() * 8, 68 + rng() * 10]
+                             : [34 + rng() * 6, 55 + rng() * 8, 74 + rng() * 8];
+        return ls.map(function (L) {
+          var h = baseHue + (rng() - 0.5) * 16;
+          var s = 52 + rng() * 34;
+          return hslToHex(h, s, L);
+        });
+      }
+
+      // ---------- Tile paths + raster cache ----------
       function toPath(list) {
         var path = new Path2D();
         for (var i = 0; i < list.length; i++) {
-          var n = list[i].split(" "); // flat "x1 y1 x2 y2 ..."
-          for (var k = 0; k < n.length; k += 2) {
-            var x = +n[k], y = +n[k + 1];
-            if (k === 0) path.moveTo(x, y); else path.lineTo(x, y);
-          }
+          var n = list[i].split(" ");
+          for (var k = 0; k < n.length; k += 2) { var x = +n[k], y = +n[k + 1]; if (k === 0) path.moveTo(x, y); else path.lineTo(x, y); }
           path.closePath();
         }
         return path;
       }
       var TILE = [toPath(DATA.polys.c1), toPath(DATA.polys.c2), toPath(DATA.polys.c3)];
-
-      // Cached raster of one tile, used when zoomed out (downscaled -> still sharp,
-      // and far faster than filling ~1000 vector tiles). Vector is used when
-      // zoomed in past the raster's native scale, so it never looks blurry.
       var TILE_RES = 512, RS = TILE_RES / P;
       var rasterCanvas = document.createElement("canvas");
-      rasterCanvas.width = Math.round(P * RS);
-      rasterCanvas.height = Math.round(VH * RS);
+      rasterCanvas.width = Math.round(P * RS); rasterCanvas.height = Math.round(VH * RS);
       var rasterBitmap = null;
       function buildTileRaster() {
         var g = rasterCanvas.getContext("2d");
-        g.setTransform(RS, 0, 0, RS, 0, 0);
-        g.clearRect(0, 0, P, VH);
+        g.setTransform(RS, 0, 0, RS, 0, 0); g.clearRect(0, 0, P, VH);
         g.fillStyle = state.c1; g.fill(TILE[0]);
         g.fillStyle = state.c2; g.fill(TILE[1]);
         g.fillStyle = state.c3; g.fill(TILE[2]);
-        if (window.createImageBitmap) {
-          createImageBitmap(rasterCanvas).then(function (bm) {
-            if (rasterBitmap && rasterBitmap.close) rasterBitmap.close();
-            rasterBitmap = bm; scheduleRender();
-          });
-        }
+        if (window.createImageBitmap) createImageBitmap(rasterCanvas).then(function (bm) { if (rasterBitmap && rasterBitmap.close) rasterBitmap.close(); rasterBitmap = bm; scheduleRender(); });
       }
 
       function scaleFactor() { return BASE_SCALE * (state.zoom / 100); }
-      function overlayGroupColor(ci) { return ci === 0 ? state.o1 : ci === 1 ? state.o2 : state.o3; }
-      function barColor(b) { return b.color || overlayGroupColor(b.c); }
-
       function barCorners(b) {
         var n = SIZES[b.n], th = BAR.th, sh = BAR.sh, h = BAR.h;
         return [[b.x, b.y], [b.x + th * n, b.y], [b.x + (th + sh) * n, b.y - h * n], [b.x + sh * n, b.y - h * n]];
       }
 
-      // ---- Render (canvas, vector, sharp at any zoom) ----
+      // ---------- Render ----------
       var W = 0, H = 0, dpr = 1;
       function resize() {
-        dpr = window.devicePixelRatio || 1;
-        W = window.innerWidth; H = window.innerHeight;
+        dpr = window.devicePixelRatio || 1; W = window.innerWidth; H = window.innerHeight;
         canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
         canvas.style.width = W + "px"; canvas.style.height = H + "px";
       }
-
       function drawScene(g, s, panX, panY, wx0, wy0, wx1, wy1, forceVector) {
-        g.save();
-        g.translate(panX, panY); g.scale(s, s);
+        g.save(); g.translate(panX, panY); g.scale(s, s);
         var i0 = Math.floor(wx0 / P) - 1, i1 = Math.ceil(wx1 / P) + 1;
-        var j0 = Math.floor(wy0 / VH) - 1, j1 = Math.ceil(wy1 / VH) + 1;
-        var i, j;
+        var j0 = Math.floor(wy0 / VH) - 1, j1 = Math.ceil(wy1 / VH) + 1, i, j;
         if (!forceVector && s <= RS) {
-          // Raster path (zoomed out): fast bitmap blits, sharp because downscaled.
           g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
           var img = rasterBitmap || rasterCanvas;
-          for (j = j0; j <= j1; j++)
-            for (i = i0; i <= i1; i++)
-              g.drawImage(img, i * P, j * VH, P + 0.5, VH + 0.5);
+          for (j = j0; j <= j1; j++) for (i = i0; i <= i1; i++) g.drawImage(img, i * P, j * VH, P + 0.5, VH + 0.5);
         } else {
-          // Vector path (zoomed in): crisp at any magnification.
-          for (j = j0; j <= j1; j++) {
-            for (i = i0; i <= i1; i++) {
-              g.save(); g.translate(i * P, j * VH);
-              g.fillStyle = state.c1; g.fill(TILE[0]);
-              g.fillStyle = state.c2; g.fill(TILE[1]);
-              g.fillStyle = state.c3; g.fill(TILE[2]);
-              g.restore();
-            }
+          for (j = j0; j <= j1; j++) for (i = i0; i <= i1; i++) {
+            g.save(); g.translate(i * P, j * VH);
+            g.fillStyle = state.c1; g.fill(TILE[0]); g.fillStyle = state.c2; g.fill(TILE[1]); g.fillStyle = state.c3; g.fill(TILE[2]);
+            g.restore();
           }
         }
         for (var b = 0; b < bars.length; b++) {
           var c = barCorners(bars[b]);
-          g.beginPath();
-          g.moveTo(c[0][0], c[0][1]);
-          g.lineTo(c[1][0], c[1][1]); g.lineTo(c[2][0], c[2][1]); g.lineTo(c[3][0], c[3][1]);
-          g.closePath();
-          g.fillStyle = barColor(bars[b]); g.fill();
+          g.beginPath(); g.moveTo(c[0][0], c[0][1]); g.lineTo(c[1][0], c[1][1]); g.lineTo(c[2][0], c[2][1]); g.lineTo(c[3][0], c[3][1]); g.closePath();
+          g.fillStyle = bars[b].color; g.fill();
         }
         g.restore();
       }
-
       function maskRect() {
         if (!state.mask) return null;
-        var r = state.mask[0] / state.mask[1], pad = 0.055;
-        var aw = W * (1 - pad * 2), ah = H * (1 - pad * 2), rw, rh;
+        var r = state.mask[0] / state.mask[1], pad = 0.055, aw = W * (1 - pad * 2), ah = H * (1 - pad * 2), rw, rh;
         if (aw / ah > r) { rh = ah; rw = rh * r; } else { rw = aw; rh = rw / r; }
         return { x: (W - rw) / 2, y: (H - rh) / 2, w: rw, h: rh };
       }
       function drawMask(g) {
         var m = maskRect(); if (!m) return;
-        g.save();
-        g.fillStyle = "rgba(9,11,20,0.66)";
-        g.fillRect(0, 0, W, m.y);
-        g.fillRect(0, m.y + m.h, W, H - m.y - m.h);
-        g.fillRect(0, m.y, m.x, m.h);
-        g.fillRect(m.x + m.w, m.y, W - m.x - m.w, m.h);
-        g.strokeStyle = "rgba(255,255,255,0.9)"; g.lineWidth = 1.5;
-        g.strokeRect(m.x + 0.75, m.y + 0.75, m.w - 1.5, m.h - 1.5);
+        g.save(); g.fillStyle = "rgba(9,11,20,0.66)";
+        g.fillRect(0, 0, W, m.y); g.fillRect(0, m.y + m.h, W, H - m.y - m.h);
+        g.fillRect(0, m.y, m.x, m.h); g.fillRect(m.x + m.w, m.y, W - m.x - m.w, m.h);
+        g.strokeStyle = "rgba(255,255,255,0.9)"; g.lineWidth = 1.5; g.strokeRect(m.x + 0.75, m.y + 0.75, m.w - 1.5, m.h - 1.5);
         g.restore();
       }
-
       function render() {
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ctx.clearRect(0, 0, W, H);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
         var s = scaleFactor();
-        var wx0 = -state.panX / s, wy0 = -state.panY / s, wx1 = (W - state.panX) / s, wy1 = (H - state.panY) / s;
-        drawScene(ctx, s, state.panX, state.panY, wx0, wy0, wx1, wy1);
+        drawScene(ctx, s, state.panX, state.panY, -state.panX / s, -state.panY / s, (W - state.panX) / s, (H - state.panY) / s);
         drawMask(ctx);
       }
       var raf = null;
       function scheduleRender() { if (!raf) raf = requestAnimationFrame(function () { raf = null; render(); }); }
 
-      // ---- Geometry: snap to valid anchors for a size ----
+      // ---------- Geometry / placement ----------
       function snap(ux, uy, sizeIdx) {
-        var list = DATA.validAnchors[String(SIZES[sizeIdx])];
-        var best = null, bestD = Infinity;
+        var list = DATA.validAnchors[String(SIZES[sizeIdx])], best = null, bestD = Infinity;
         for (var k = 0; k < list.length; k++) {
           var ax = list[k][0], ay = list[k][1];
-          var X = ax + Math.round((ux - ax) / P) * P;
-          var Y = ay + Math.round((uy - ay) / VH) * VH;
+          var X = ax + Math.round((ux - ax) / P) * P, Y = ay + Math.round((uy - ay) / VH) * VH;
           var dx = X - ux, dy = Y - uy, d = dx * dx + dy * dy;
           if (d < bestD) { bestD = d; best = [X, Y]; }
         }
         return best;
       }
       function toUser(sx, sy) { var s = scaleFactor(); return [(sx - state.panX) / s, (sy - state.panY) / s]; }
-
-      function addBarRaw(ux, uy, sizeIdx, colorIdx) {
+      function makeBar(ux, uy, sizeIdx, color) {
         var n = SIZES[sizeIdx], cx = (BAR.th + BAR.sh) * n / 2, cy = -BAR.h * n / 2;
         var d = snap(ux - cx, uy - cy, sizeIdx);
-        bars.push({ x: d[0], y: d[1], n: sizeIdx, c: colorIdx, color: null });
+        return { x: d[0], y: d[1], n: sizeIdx, color: color };
       }
-      function addBar(ux, uy, sizeIdx, colorIdx) {
-        var c = colorIdx; if (c < 0) { c = state.autoCounter % 3; state.autoCounter++; }
-        addBarRaw(ux, uy, sizeIdx, c); scheduleRender();
-      }
-
-      // point in a bar's parallelogram (world coords)
       function hitBar(ux, uy) {
         for (var i = bars.length - 1; i >= 0; i--) {
-          var b = bars[i], n = SIZES[b.n];
-          var ux0 = BAR.th * n, vx = BAR.sh * n, vy = -BAR.h * n; // u=(ux0,0), v=(vx,vy)
-          var px = ux - b.x, py = uy - b.y;
-          var bb = py / vy; var aa = (px - bb * vx) / ux0;
+          var b = bars[i], n = SIZES[b.n], ux0 = BAR.th * n, vx = BAR.sh * n, vy = -BAR.h * n;
+          var px = ux - b.x, py = uy - b.y, bb = py / vy, aa = (px - bb * vx) / ux0;
           if (aa >= 0 && aa <= 1 && bb >= 0 && bb <= 1) return i;
         }
         return -1;
       }
 
-      // ---- Colour palette factory ----
+      // ---------- Undo history ----------
+      var history = [];
+      function pushHistory() { history.push(JSON.stringify(bars)); if (history.length > 80) history.shift(); }
+      function undo() { if (!history.length) return; bars = JSON.parse(history.pop()); scheduleRender(); }
+
+      // ---------- Colour palette factory ----------
       function makePalette(container, labelEl, getVal, setVal, onChange) {
-        container.innerHTML = "";
-        var custom, customInput, swatches = [];
+        container.innerHTML = ""; var custom, customInput, swatches = [];
         function refresh() {
           var cur = (getVal() || "").toLowerCase(), matched = false;
-          for (var i = 0; i < swatches.length; i++) {
-            var on = swatches[i].getAttribute("data-hex") === cur;
-            swatches[i].classList.toggle("active", on); if (on) matched = true;
-          }
-          custom.classList.toggle("active", !matched);
-          custom.style.background = matched ? "" : getVal();
-          customInput.value = getVal();
+          for (var i = 0; i < swatches.length; i++) { var on = swatches[i].getAttribute("data-hex") === cur; swatches[i].classList.toggle("active", on); if (on) matched = true; }
+          custom.classList.toggle("active", !matched); custom.style.background = matched ? "" : getVal(); customInput.value = getVal();
           if (labelEl) labelEl.textContent = (getVal() || "").toUpperCase();
         }
         PALETTE.forEach(function (c) {
           var sw = document.createElement("button");
-          sw.className = "sw"; sw.title = c.name + "  " + c.hex.toUpperCase();
-          sw.style.background = c.hex; sw.setAttribute("data-hex", c.hex.toLowerCase());
+          sw.className = "sw"; sw.title = c.name + "  " + c.hex.toUpperCase(); sw.style.background = c.hex; sw.setAttribute("data-hex", c.hex.toLowerCase());
           sw.addEventListener("click", function () { setVal(c.hex); onChange(); refresh(); });
           container.appendChild(sw); swatches.push(sw);
         });
-        custom = document.createElement("label");
-        custom.className = "sw custom"; custom.title = "Custom color";
+        custom = document.createElement("label"); custom.className = "sw custom"; custom.title = "Custom color";
         customInput = document.createElement("input"); customInput.type = "color"; customInput.value = getVal();
         customInput.addEventListener("input", function () { setVal(customInput.value); onChange(); refresh(); });
-        custom.appendChild(customInput); container.appendChild(custom);
-        refresh();
+        custom.appendChild(customInput); container.appendChild(custom); refresh();
         return refresh;
       }
-
       var refreshers = [];
       function slotPal(palId, lblId, slot, onChange) {
-        refreshers.push(makePalette(document.getElementById(palId), document.getElementById(lblId),
-          function () { return state[slot]; }, function (v) { state[slot] = v; }, onChange));
+        refreshers.push(makePalette(document.getElementById(palId), document.getElementById(lblId), function () { return state[slot]; }, function (v) { state[slot] = v; }, onChange));
       }
       function patternColorChanged() { buildTileRaster(); scheduleRender(); }
       slotPal("pal_c1", "lbl_c1", "c1", patternColorChanged);
       slotPal("pal_c2", "lbl_c2", "c2", patternColorChanged);
       slotPal("pal_c3", "lbl_c3", "c3", patternColorChanged);
-      slotPal("pal_o1", "lbl_o1", "o1", scheduleRender);
-      slotPal("pal_o2", "lbl_o2", "o2", scheduleRender);
-      slotPal("pal_o3", "lbl_o3", "o3", scheduleRender);
-      function refreshPalettes() { refreshers.forEach(function (f) { f(); }); }
 
-      // ---- Zoom (always pivots on the centre of the screen) ----
+      // Bar default colour: picking a swatch recolours all bars to it and sets the new-bar default.
+      var barDefaultRefresh = makePalette(document.getElementById("pal_bar_default"), document.getElementById("lbl_bar"),
+        function () { return state.barColor; },
+        function (v) { pushHistory(); state.barColor = v; state.tones = [v]; for (var i = 0; i < bars.length; i++) bars[i].color = v; },
+        function () { renderTones(); scheduleRender(); });
+      refreshers.push(barDefaultRefresh);
+
+      function renderTones() {
+        var el = document.getElementById("tonesView"); el.innerHTML = "";
+        state.tones.forEach(function (hex) { var d = document.createElement("div"); d.className = "sw"; d.style.background = hex; d.title = hex.toUpperCase(); el.appendChild(d); });
+      }
+      function refreshAllColorUI() { refreshers.forEach(function (f) { f(); }); renderTones(); }
+
+      // ---------- Zoom (centre pivot) ----------
       var zoomInput = document.getElementById("zoom"), zoomReadout = document.getElementById("zoomReadout");
       function updateZoomReadout() { zoomReadout.textContent = Math.round(state.zoom) + "%"; }
       function setZoom(z) {
-        if (state.locked) return;
+        if (state.lockZoom) return;
         z = Math.max(+zoomInput.min, Math.min(+zoomInput.max, z));
-        var cx = W / 2, cy = H / 2;
-        var before = toUser(cx, cy); state.zoom = z; var s = scaleFactor();
+        var cx = W / 2, cy = H / 2, before = toUser(cx, cy); state.zoom = z; var s = scaleFactor();
         state.panX = cx - before[0] * s; state.panY = cy - before[1] * s;
         zoomInput.value = z; updateZoomReadout(); scheduleRender();
       }
-      zoomInput.addEventListener("input", function () { if (state.locked) { zoomInput.value = state.zoom; return; } setZoom(+zoomInput.value); });
+      zoomInput.addEventListener("input", function () { if (state.lockZoom) { zoomInput.value = state.zoom; return; } setZoom(+zoomInput.value); });
       document.getElementById("zoomIn").addEventListener("click", function () { setZoom(state.zoom * 1.2); });
       document.getElementById("zoomOut").addEventListener("click", function () { setZoom(state.zoom / 1.2); });
-      canvas.addEventListener("wheel", function (e) { if (state.locked) return; e.preventDefault(); setZoom(state.zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)); }, { passive: false });
+      canvas.addEventListener("wheel", function (e) { if (state.lockZoom) return; e.preventDefault(); setZoom(state.zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)); }, { passive: false });
 
-      // ---- Lock zoom & pan ----
-      var lockBtn = document.getElementById("lockBtn");
+      // ---------- Locks ----------
+      var lockZoomBtn = document.getElementById("lockZoomBtn"), lockPanBtn = document.getElementById("lockPanBtn");
       function updateLockUI() {
-        lockBtn.textContent = (state.locked ? "🔒 View locked" : "🔓 Lock zoom & pan");
-        lockBtn.classList.toggle("primary", state.locked);
-        zoomInput.disabled = state.locked;
-        zoomInput.style.opacity = state.locked ? "0.5" : "";
+        lockZoomBtn.textContent = (state.lockZoom ? "🔒 Zoom" : "🔓 Zoom"); lockZoomBtn.classList.toggle("on", state.lockZoom);
+        lockPanBtn.textContent = (state.lockPan ? "🔒 Pan" : "🔓 Pan"); lockPanBtn.classList.toggle("on", state.lockPan);
+        zoomInput.disabled = state.lockZoom; zoomInput.style.opacity = state.lockZoom ? "0.5" : "";
       }
-      lockBtn.addEventListener("click", function () { state.locked = !state.locked; updateLockUI(); });
+      lockZoomBtn.addEventListener("click", function () { state.lockZoom = !state.lockZoom; updateLockUI(); });
+      lockPanBtn.addEventListener("click", function () { state.lockPan = !state.lockPan; updateLockUI(); });
 
-      // ---- Pointer: pan / place / edit ----
+      // ---------- Pointer: pan / place / edit ----------
       var pDown = false, moved = 0, lastX = 0, lastY = 0;
-      canvas.addEventListener("pointerdown", function (e) {
-        closeBarMenu();
-        pDown = true; moved = 0; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId);
-      });
+      canvas.addEventListener("pointerdown", function (e) { closeBarMenu(); pDown = true; moved = 0; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
       canvas.addEventListener("pointermove", function (e) {
         if (!pDown) return;
         var dx = e.clientX - lastX, dy = e.clientY - lastY; moved += Math.abs(dx) + Math.abs(dy);
-        if (state.locked) { lastX = e.clientX; lastY = e.clientY; return; } // no panning when locked
+        lastX = e.clientX; lastY = e.clientY;
+        if (state.lockPan) return;
         if (moved > 4) canvas.classList.add("grabbing");
-        state.panX += dx; state.panY += dy; lastX = e.clientX; lastY = e.clientY; scheduleRender();
+        state.panX += dx; state.panY += dy; scheduleRender();
       });
       canvas.addEventListener("pointerup", function (e) {
         pDown = false; canvas.classList.remove("grabbing");
         if (canvas.hasPointerCapture && canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
         if (moved <= 4) {
-          var u = toUser(e.clientX, e.clientY);
-          var hit = hitBar(u[0], u[1]);
+          var u = toUser(e.clientX, e.clientY), hit = hitBar(u[0], u[1]);
           if (hit >= 0) openBarMenu(hit, e.clientX, e.clientY);
-          else addBar(u[0], u[1], state.clickSize, state.clickColor);
+          else { pushHistory(); bars.push(makeBar(u[0], u[1], state.clickSize, state.barColor)); scheduleRender(); }
         }
       });
       canvas.addEventListener("pointercancel", function () { pDown = false; canvas.classList.remove("grabbing"); });
 
-      // ---- Segmented controls ----
+      // ---------- Segmented controls ----------
       function wireSeg(id, attr, cb) {
         var seg = document.getElementById(id);
-        seg.addEventListener("click", function (e) {
-          var btn = e.target.closest("button"); if (!btn) return;
-          seg.querySelectorAll("button").forEach(function (b) { b.classList.remove("active"); });
-          btn.classList.add("active"); cb(parseInt(btn.getAttribute(attr), 10));
-        });
+        seg.addEventListener("click", function (e) { var btn = e.target.closest("button"); if (!btn) return; seg.querySelectorAll("button").forEach(function (b) { b.classList.remove("active"); }); btn.classList.add("active"); cb(parseInt(btn.getAttribute(attr), 10)); });
       }
       wireSeg("sizeSeg", "data-size", function (v) { state.clickSize = v; });
-      wireSeg("colorSeg", "data-col", function (v) { state.clickColor = v; });
+      wireSeg("toneCountSeg", "data-tc", function (v) { state.toneCount = v; });
+      document.getElementById("layoutSel").addEventListener("change", function (e) { state.layout = e.target.value; });
+      document.getElementById("maskSel").addEventListener("change", function (e) { state.mask = e.target.value ? e.target.value.split(":").map(Number) : null; scheduleRender(); });
 
-      // ---- Aspect mask ----
-      document.getElementById("maskSel").addEventListener("change", function (e) {
-        var v = e.target.value;
-        state.mask = v ? v.split(":").map(Number) : null;
-        scheduleRender();
+      // ---------- Generate harmonious tones ----------
+      function applyTones() {
+        // Recolour existing bars by evenly distributing the current tones.
+        var t = state.tones, bag = [];
+        for (var i = 0; i < bars.length; i++) bag.push(i % t.length);
+        for (var j = bag.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var tmp = bag[j]; bag[j] = bag[r]; bag[r] = tmp; }
+        for (var k = 0; k < bars.length; k++) bars[k].color = t[bag[k]];
+      }
+      document.getElementById("genTonesBtn").addEventListener("click", function () {
+        pushHistory();
+        state.seed = (Math.random() * 4294967296) >>> 0;
+        state.tones = generateTones(state.toneCount, state.seed);
+        state.barColor = state.tones[Math.min(1, state.tones.length - 1)];
+        applyTones(); renderTones(); barDefaultRefresh(); scheduleRender();
       });
 
-      // ---- Scatter / undo / clear ----
+      // ---------- Scatter (mask-aware, composition layouts) ----------
+      function gauss() { var u = 0, v = 0; while (u === 0) u = Math.random(); while (v === 0) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+      function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+      function layoutUV(mode, i, n) {
+        var pts, p;
+        if (mode === "thirds") { pts = [[1 / 3, 1 / 3], [2 / 3, 1 / 3], [1 / 3, 2 / 3], [2 / 3, 2 / 3]]; p = pts[i % 4]; return [clamp01(p[0] + gauss() * 0.1), clamp01(p[1] + gauss() * 0.1)]; }
+        if (mode === "golden") { pts = [[0.382, 0.382], [0.618, 0.382], [0.382, 0.618], [0.618, 0.618]]; p = pts[i % 4]; return [clamp01(p[0] + gauss() * 0.09), clamp01(p[1] + gauss() * 0.09)]; }
+        if (mode === "spiral") { var ga = 2.399963229, r = 0.46 * Math.sqrt((i + 0.5) / n), a = i * ga; return [clamp01(0.5 + r * Math.cos(a) + gauss() * 0.02), clamp01(0.5 + r * Math.sin(a) + gauss() * 0.02)]; }
+        if (mode === "center") { return [clamp01(0.5 + gauss() * 0.17), clamp01(0.5 + gauss() * 0.17)]; }
+        return [Math.random(), Math.random()]; // even
+      }
       document.getElementById("scatterBtn").addEventListener("click", function () {
-        var n = parseInt(document.getElementById("scatterCount").value, 10) || 0;
-        var tl = toUser(0, 0), br = toUser(W, H);
-        var minX = Math.min(tl[0], br[0]), maxX = Math.max(tl[0], br[0]);
-        var minY = Math.min(tl[1], br[1]), maxY = Math.max(tl[1], br[1]);
-        var bag = []; for (var i = 0; i < n; i++) bag.push(i % 3);
-        for (var j = bag.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var t = bag[j]; bag[j] = bag[r]; bag[r] = t; }
-        for (var k = 0; k < n; k++) addBarRaw(minX + Math.random() * (maxX - minX), minY + Math.random() * (maxY - minY), Math.floor(Math.random() * 3), bag[k]);
+        var n = parseInt(document.getElementById("scatterCount").value, 10) || 0; if (!n) return;
+        pushHistory();
+        var m = maskRect() || { x: 0, y: 0, w: W, h: H };            // region in screen space
+        var tl = toUser(m.x, m.y), br = toUser(m.x + m.w, m.y + m.h); // -> world
+        var x0 = tl[0], y0 = tl[1], dx = br[0] - x0, dy = br[1] - y0;
+        for (var i = 0; i < n; i++) {
+          var uv = layoutUV(state.layout, i, n);
+          bars.push(makeBar(x0 + uv[0] * dx, y0 + uv[1] * dy, Math.floor(Math.random() * 3), state.barColor));
+        }
+        if (state.tones.length > 1) applyTones(); // colourise with the active tone set
         scheduleRender();
       });
-      document.getElementById("undoBtn").addEventListener("click", function () { bars.pop(); scheduleRender(); });
-      document.getElementById("clearBtn").addEventListener("click", function () { bars.length = 0; scheduleRender(); });
+      document.getElementById("undoBtn").addEventListener("click", undo);
+      document.getElementById("clearBtn").addEventListener("click", function () { if (bars.length) { pushHistory(); bars.length = 0; scheduleRender(); } });
 
-      // ---- Per-bar menu ----
-      var barMenu = document.getElementById("barMenu");
-      var barMenuIdx = -1;
+      // ---------- Per-bar menu ----------
+      var barMenu = document.getElementById("barMenu"), barMenuIdx = -1;
       function openBarMenu(idx, sx, sy) {
         barMenuIdx = idx;
         makePalette(document.getElementById("pal_bar"), document.getElementById("barMenuHex"),
-          function () { return barColor(bars[idx]); },
-          function (v) { bars[idx].color = v; },
+          function () { return bars[idx].color; },
+          function (v) { pushHistory(); bars[idx].color = v; },
           scheduleRender);
         barMenu.classList.add("open");
         var mw = 238, mh = barMenu.offsetHeight || 150;
@@ -552,99 +525,71 @@
       }
       function closeBarMenu() { barMenu.classList.remove("open"); barMenuIdx = -1; }
       document.getElementById("barClose").addEventListener("click", closeBarMenu);
-      document.getElementById("barDelete").addEventListener("click", function () {
-        if (barMenuIdx >= 0) { bars.splice(barMenuIdx, 1); closeBarMenu(); scheduleRender(); }
-      });
+      document.getElementById("barDelete").addEventListener("click", function () { if (barMenuIdx >= 0) { pushHistory(); bars.splice(barMenuIdx, 1); closeBarMenu(); scheduleRender(); } });
       barMenu.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
 
-      // ---- Reset ----
-      document.getElementById("resetBtn").addEventListener("click", function () {
-        state.c1 = DEFAULTS.c1; state.c2 = DEFAULTS.c2; state.c3 = DEFAULTS.c3;
-        state.o1 = DEFAULTS.o1; state.o2 = DEFAULTS.o2; state.o3 = DEFAULTS.o3;
-        state.zoom = 100; state.panX = 0; state.panY = 0; state.autoCounter = 0; state.mask = null; state.locked = false;
-        bars.length = 0; document.getElementById("maskSel").value = "";
-        refreshPalettes(); buildTileRaster(); zoomInput.value = 100; updateZoomReadout(); updateLockUI(); closeBarMenu(); scheduleRender();
-      });
-
-      // ---- Colour schemes (persisted in localStorage) ----
+      // ---------- Colour schemes ----------
       var SKEY = "patternColorSchemes";
-      var schemeSel = document.getElementById("schemeSel");
-      var schemeName = document.getElementById("schemeName");
+      var schemeSel = document.getElementById("schemeSel"), schemeName = document.getElementById("schemeName");
       function loadSchemes() { try { return JSON.parse(localStorage.getItem(SKEY)) || []; } catch (e) { return []; } }
       function storeSchemes(list) { try { localStorage.setItem(SKEY, JSON.stringify(list)); } catch (e) {} }
-      function refreshSchemeList(selectName) {
-        var list = loadSchemes();
-        schemeSel.innerHTML = '<option value="">Saved schemes…</option>';
-        list.forEach(function (s) {
-          var o = document.createElement("option");
-          o.value = s.name; o.textContent = s.name; schemeSel.appendChild(o);
-        });
-        if (selectName) schemeSel.value = selectName;
+      function refreshSchemeList(sel) {
+        var list = loadSchemes(); schemeSel.innerHTML = '<option value="">Saved schemes…</option>';
+        list.forEach(function (s) { var o = document.createElement("option"); o.value = s.name; o.textContent = s.name; schemeSel.appendChild(o); });
+        if (sel) schemeSel.value = sel;
       }
       function applyScheme(s) {
-        state.c1 = s.c1; state.c2 = s.c2; state.c3 = s.c3;
-        state.o1 = s.o1; state.o2 = s.o2; state.o3 = s.o3;
-        refreshPalettes(); buildTileRaster(); scheduleRender();
+        pushHistory();
+        state.c1 = s.pattern[0]; state.c2 = s.pattern[1]; state.c3 = s.pattern[2];
+        state.barColor = s.barColor; state.tones = (s.tones && s.tones.length) ? s.tones.slice() : [s.barColor];
+        if (state.tones.length > 1) applyTones(); else for (var i = 0; i < bars.length; i++) bars[i].color = state.barColor;
+        refreshAllColorUI(); buildTileRaster(); scheduleRender();
       }
       document.getElementById("schemeSave").addEventListener("click", function () {
-        var name = (schemeName.value || "").trim();
-        if (!name) { schemeName.focus(); return; }
+        var name = (schemeName.value || "").trim(); if (!name) { schemeName.focus(); return; }
         var list = loadSchemes().filter(function (s) { return s.name !== name; });
-        list.push({ name: name, c1: state.c1, c2: state.c2, c3: state.c3, o1: state.o1, o2: state.o2, o3: state.o3 });
+        list.push({ name: name, pattern: [state.c1, state.c2, state.c3], barColor: state.barColor, tones: state.tones.slice() });
         storeSchemes(list); refreshSchemeList(name); schemeName.value = "";
       });
-      document.getElementById("schemeApply").addEventListener("click", function () {
-        var s = loadSchemes().filter(function (x) { return x.name === schemeSel.value; })[0];
-        if (s) applyScheme(s);
-      });
-      schemeSel.addEventListener("change", function () {
-        var s = loadSchemes().filter(function (x) { return x.name === schemeSel.value; })[0];
-        if (s) applyScheme(s);
-      });
-      document.getElementById("schemeDelete").addEventListener("click", function () {
-        if (!schemeSel.value) return;
-        storeSchemes(loadSchemes().filter(function (s) { return s.name !== schemeSel.value; }));
-        refreshSchemeList();
+      document.getElementById("schemeApply").addEventListener("click", function () { var s = loadSchemes().filter(function (x) { return x.name === schemeSel.value; })[0]; if (s) applyScheme(s); });
+      schemeSel.addEventListener("change", function () { var s = loadSchemes().filter(function (x) { return x.name === schemeSel.value; })[0]; if (s) applyScheme(s); });
+      document.getElementById("schemeDelete").addEventListener("click", function () { if (!schemeSel.value) return; storeSchemes(loadSchemes().filter(function (s) { return s.name !== schemeSel.value; })); refreshSchemeList(); });
+
+      // ---------- Reset ----------
+      document.getElementById("resetBtn").addEventListener("click", function () {
+        pushHistory();
+        state.c1 = DEFAULTS.c1; state.c2 = DEFAULTS.c2; state.c3 = DEFAULTS.c3;
+        state.barColor = DEFAULTS.barColor; state.tones = [DEFAULTS.barColor];
+        state.zoom = 100; state.panX = 0; state.panY = 0; state.mask = null; state.lockZoom = false; state.lockPan = false;
+        bars.length = 0; document.getElementById("maskSel").value = "";
+        refreshAllColorUI(); buildTileRaster(); zoomInput.value = 100; updateZoomReadout(); updateLockUI(); closeBarMenu(); scheduleRender();
       });
 
-      // ---- Save PNG (respects aspect mask if set) ----
+      // ---------- Save PNG (crops to aspect mask if set) ----------
       document.getElementById("downloadBtn").addEventListener("click", function () {
-        var m = maskRect() || { x: 0, y: 0, w: W, h: H };
-        var out = 2, s = scaleFactor();
-        var ec = document.createElement("canvas");
-        ec.width = Math.round(m.w * out); ec.height = Math.round(m.h * out);
-        var eg = ec.getContext("2d");
-        eg.setTransform(out, 0, 0, out, 0, 0);
-        // world bounds of the mask region
-        var wx0 = (m.x - state.panX) / s, wy0 = (m.y - state.panY) / s;
-        var wx1 = (m.x + m.w - state.panX) / s, wy1 = (m.y + m.h - state.panY) / s;
+        var m = maskRect() || { x: 0, y: 0, w: W, h: H }, out = 2, s = scaleFactor();
+        var ec = document.createElement("canvas"); ec.width = Math.round(m.w * out); ec.height = Math.round(m.h * out);
+        var eg = ec.getContext("2d"); eg.setTransform(out, 0, 0, out, 0, 0);
+        var wx0 = (m.x - state.panX) / s, wy0 = (m.y - state.panY) / s, wx1 = (m.x + m.w - state.panX) / s, wy1 = (m.y + m.h - state.panY) / s;
         drawScene(eg, s, state.panX - m.x, state.panY - m.y, wx0, wy0, wx1, wy1, true);
-        var link = document.createElement("a");
-        link.download = "pattern.png"; link.href = ec.toDataURL("image/png"); link.click();
+        var link = document.createElement("a"); link.download = "pattern.png"; link.href = ec.toDataURL("image/png"); link.click();
       });
 
-      // ---- Menu show/hide ----
+      // ---------- Menu show/hide ----------
       var panel = document.getElementById("panel");
-      function toggleMenu(force) {
-        var hide = (force === undefined) ? !panel.classList.contains("hidden") : force;
-        panel.classList.toggle("hidden", hide);
-      }
+      function toggleMenu(force) { var hide = (force === undefined) ? !panel.classList.contains("hidden") : force; panel.classList.toggle("hidden", hide); }
       document.getElementById("closeBtn").addEventListener("click", function () { toggleMenu(true); });
       document.getElementById("toggle").addEventListener("click", function () { toggleMenu(false); });
       document.addEventListener("keydown", function (e) {
-        if (e.key === "m" || e.key === "M") {
-          var t = document.activeElement;
-          if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA")) return;
-          toggleMenu();
-        }
+        var t = document.activeElement, typing = t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA");
+        if ((e.metaKey || e.ctrlKey) && (e.key === "z" || e.key === "Z")) { e.preventDefault(); undo(); return; }
+        if ((e.key === "m" || e.key === "M") && !typing) toggleMenu();
       });
 
-      // ---- Resize ----
       window.addEventListener("resize", function () { resize(); scheduleRender(); });
 
-      // ---- Init ----
-      resize(); refreshPalettes(); buildTileRaster(); updateZoomReadout();
-      updateLockUI(); refreshSchemeList(); render();
+      // ---------- Init ----------
+      resize(); refreshAllColorUI(); buildTileRaster(); updateZoomReadout(); updateLockUI(); refreshSchemeList(); render();
     })();
   </script>
 </body>

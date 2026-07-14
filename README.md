@@ -14,16 +14,22 @@ artwork is rendered to a canvas — seamless, recolorable, and **sharp at any zo
   zoom always pivots on the centre of the screen. The pattern stays crisp at
   every zoom level.
 - **Pan** — drag to move the pattern.
-- **Lock zoom & pan** — freeze the view (zoom + pan disabled) while still placing
-  and editing bars.
-- **Color schemes** — save the current six colours (3 pattern + 3 overlay) under
-  a name and re-apply or delete them later; saved schemes persist in the browser.
+- **Lock zoom & pan** — independent toggles to freeze zooming and/or panning
+  while still placing and editing bars.
+- **Color schemes** — save the current colours (3 pattern tones + the overlay
+  bar colour / generated tone set) under a name and re-apply or delete them;
+  saved schemes persist in the browser.
 - **Overlay bars** — larger copies of the pattern's base element (the slanted
   bar) that **snap precisely onto the lattice**:
   - three discrete sizes (S / M / L),
-  - three configurable colors, distributed **⅓ / ⅓ / ⅓** across scattered bars,
-  - **click empty canvas** to place a bar; **click a placed bar** to recolor it
-    individually or delete it; plus Undo / Clear.
+  - every new bar uses one **bar colour**; **click a placed bar** to recolour it
+    individually or delete it,
+  - **Generate harmonious blue tones** (2 or 3, your choice) — a seeded generator
+    produces in-family blue tones with enough contrast to read on the navy
+    pattern; each press reseeds for a fresh but fitting set, and recolours the bars,
+  - **Scatter** respects the active aspect mask and offers composition layouts
+    (rule of thirds, golden ratio, golden spiral, center-weighted, even),
+  - Undo (button or **⌘/Ctrl+Z**) / Clear.
 - **Aspect masks** — overlay a centered framing guide for common ratios
   (21:9, 16:9, 3:2, 4:3, 5:4, 1:1, 4:5, 3:4, 2:3, 9:16). Save PNG crops to the
   active mask.
