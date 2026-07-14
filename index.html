@@ -666,22 +666,29 @@
         var link = document.createElement("a"); link.download = "pattern.png"; link.href = ec.toDataURL("image/png"); link.click();
       });
 
-      // ---------- Save SVG (fully vector, cropped to aspect mask if set) ----------
+      // ---------- Save SVG ----------
+      // Fully-vector, cropped to the aspect mask. The pattern is BAKED as explicit
+      // tiled geometry (via <use>) rather than an SVG <pattern>, because editors
+      // like Illustrator clip a <pattern> tile's overflow and render it shifted —
+      // baking makes it render identically everywhere and keeps bars aligned.
       document.getElementById("downloadSvgBtn").addEventListener("click", function () {
         var m = maskRect() || { x: 0, y: 0, w: W, h: H }, s = scaleFactor();
         var tx = state.panX - m.x, ty = state.panY - m.y;
-        var W2 = Math.round(m.w), H2 = Math.round(m.h), tf = "translate(" + tx.toFixed(3) + " " + ty.toFixed(3) + ") scale(" + s.toFixed(6) + ")";
-        function grp(color, list) { var s2 = '<g fill="' + color + '">'; for (var i = 0; i < list.length; i++) s2 += '<polygon points="' + list[i] + '"/>'; return s2 + "</g>"; }
-        var inner = grp(state.c1, DATA.polys.c1) + grp(state.c2, DATA.polys.c2) + grp(state.c3, DATA.polys.c3);
+        var W2 = Math.round(m.w), H2 = Math.round(m.h);
+        var wx0 = (m.x - state.panX) / s, wy0 = (m.y - state.panY) / s, wx1 = (m.x + m.w - state.panX) / s, wy1 = (m.y + m.h - state.panY) / s;
+        var i0 = Math.floor(wx0 / P) - 1, i1 = Math.ceil(wx1 / P) + 1, j0 = Math.floor(wy0 / VH) - 1, j1 = Math.ceil(wy1 / VH) + 1;
+        function grp(color, list) { var o = '<g fill="' + color + '">'; for (var i = 0; i < list.length; i++) o += '<polygon points="' + list[i] + '"/>'; return o + "</g>"; }
+        var tile = grp(state.c1, DATA.polys.c1) + grp(state.c2, DATA.polys.c2) + grp(state.c3, DATA.polys.c3);
+        var uses = "", i, j;
+        for (j = j0; j <= j1; j++) for (i = i0; i <= i1; i++) uses += '<use xlink:href="#t" href="#t" x="' + (i * P).toFixed(2) + '" y="' + (j * VH).toFixed(2) + '"/>';
         var barsSvg = "";
         for (var b = 0; b < bars.length; b++) {
           var c = barCorners(bars[b]);
           barsSvg += '<polygon points="' + c.map(function (p) { return p[0].toFixed(2) + "," + p[1].toFixed(2); }).join(" ") + '" fill="' + bars[b].color + '"/>';
         }
-        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W2 + '" height="' + H2 + '" viewBox="0 0 ' + W2 + " " + H2 + '">'
-          + '<defs><pattern id="p" patternUnits="userSpaceOnUse" x="0" y="0" width="' + P + '" height="' + VH + '" patternTransform="' + tf + '">' + inner + '</pattern></defs>'
-          + '<rect width="' + W2 + '" height="' + H2 + '" fill="url(#p)"/>'
-          + '<g transform="' + tf + '">' + barsSvg + '</g></svg>';
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + W2 + '" height="' + H2 + '" viewBox="0 0 ' + W2 + " " + H2 + '">'
+          + '<defs><g id="t">' + tile + '</g><clipPath id="crop"><rect x="0" y="0" width="' + W2 + '" height="' + H2 + '"/></clipPath></defs>'
+          + '<g clip-path="url(#crop)"><g transform="translate(' + tx.toFixed(3) + " " + ty.toFixed(3) + ") scale(" + s.toFixed(6) + ')">' + uses + barsSvg + '</g></g></svg>';
         var blob = new Blob([svg], { type: "image/svg+xml" }), url = URL.createObjectURL(blob);
         var link = document.createElement("a"); link.download = "pattern.svg"; link.href = url; link.click();
         setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
