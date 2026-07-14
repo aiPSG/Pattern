@@ -242,6 +242,7 @@
       "use strict";
       var DATA = window.PATTERN_DATA;
       var P = DATA.period, VH = DATA.height, BAR = DATA.bar;
+      var OFFX = -757; // horizontal offset per vertical tile (oblique lattice) -> seamless
       var BASE_SCALE = 0.16, SIZES = [2, 3, 5];
 
       var PALETTE = [
@@ -336,17 +337,21 @@
       }
       function drawScene(g, s, panX, panY, wx0, wy0, wx1, wy1, forceVector) {
         g.save(); g.translate(panX, panY); g.scale(s, s);
-        var i0 = Math.floor(wx0 / P) - 1, i1 = Math.ceil(wx1 / P) + 1;
-        var j0 = Math.floor(wy0 / VH) - 1, j1 = Math.ceil(wy1 / VH) + 1, i, j;
-        if (!forceVector && s <= RS) {
-          g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
-          var img = rasterBitmap || rasterCanvas;
-          for (j = j0; j <= j1; j++) for (i = i0; i <= i1; i++) g.drawImage(img, i * P, j * VH, P + 0.5, VH + 0.5);
-        } else {
-          for (j = j0; j <= j1; j++) for (i = i0; i <= i1; i++) {
-            g.save(); g.translate(i * P, j * VH);
-            g.fillStyle = state.c1; g.fill(TILE[0]); g.fillStyle = state.c2; g.fill(TILE[1]); g.fillStyle = state.c3; g.fill(TILE[2]);
-            g.restore();
+        // The pattern tiles on an OBLIQUE lattice: each vertical step (VH) is
+        // offset horizontally by OFFX, so the diagonal continues across the join.
+        var j0 = Math.floor(wy0 / VH) - 1, j1 = Math.ceil(wy1 / VH) + 1, i, j, jx, i0, i1;
+        var raster = !forceVector && s <= RS, img = rasterBitmap || rasterCanvas;
+        if (raster) { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high"; }
+        for (j = j0; j <= j1; j++) {
+          jx = j * OFFX;
+          i0 = Math.floor((wx0 - jx) / P) - 1; i1 = Math.ceil((wx1 - jx) / P) + 1;
+          for (i = i0; i <= i1; i++) {
+            if (raster) { g.drawImage(img, i * P + jx, j * VH, P + 0.5, VH + 0.5); }
+            else {
+              g.save(); g.translate(i * P + jx, j * VH);
+              g.fillStyle = state.c1; g.fill(TILE[0]); g.fillStyle = state.c2; g.fill(TILE[1]); g.fillStyle = state.c3; g.fill(TILE[2]);
+              g.restore();
+            }
           }
         }
         for (var b = 0; b < bars.length; b++) {
@@ -679,8 +684,11 @@
         var i0 = Math.floor(wx0 / P) - 1, i1 = Math.ceil(wx1 / P) + 1, j0 = Math.floor(wy0 / VH) - 1, j1 = Math.ceil(wy1 / VH) + 1;
         function grp(color, list) { var o = '<g fill="' + color + '">'; for (var i = 0; i < list.length; i++) o += '<polygon points="' + list[i] + '"/>'; return o + "</g>"; }
         var tile = grp(state.c1, DATA.polys.c1) + grp(state.c2, DATA.polys.c2) + grp(state.c3, DATA.polys.c3);
-        var uses = "", i, j;
-        for (j = j0; j <= j1; j++) for (i = i0; i <= i1; i++) uses += '<use xlink:href="#t" href="#t" x="' + (i * P).toFixed(2) + '" y="' + (j * VH).toFixed(2) + '"/>';
+        var uses = "", i, j, jx, a0, a1;
+        for (j = j0; j <= j1; j++) {
+          jx = j * OFFX; a0 = Math.floor((wx0 - jx) / P) - 1; a1 = Math.ceil((wx1 - jx) / P) + 1;
+          for (i = a0; i <= a1; i++) uses += '<use xlink:href="#t" href="#t" x="' + (i * P + jx).toFixed(2) + '" y="' + (j * VH).toFixed(2) + '"/>';
+        }
         var barsSvg = "";
         for (var b = 0; b < bars.length; b++) {
           var c = barCorners(bars[b]);
