@@ -88,6 +88,21 @@
     #barMenu.open { display: block; }
     #barMenu .title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dim); margin-bottom: 10px; display:flex; justify-content:space-between; }
     #barMenu .pal { margin-bottom: 10px; }
+
+    /* "place bar here" cursor */
+    #cursorHint { position: fixed; z-index: 28; pointer-events: none; display: none; align-items: center; }
+    #cursorHint.show { display: flex; }
+    #cursorHint .ring { width: 20px; height: 20px; margin: -10px 0 -10px -10px; border: 2px solid rgba(255,255,255,0.92); border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(0,0,0,0.45); flex: 0 0 auto; }
+    #cursorHint .txt { margin-left: 12px; white-space: nowrap; font-size: 12px; font-weight: 600; color: #fff; background: rgba(9,11,20,0.72); padding: 3px 9px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    #cursorHint.down .txt { display: none; }
+
+    /* corner-choice popup for placing a bar */
+    #cornerPick { position: fixed; z-index: 22; padding: 8px; border-radius: 11px; background: var(--panel-bg); border: 1px solid var(--panel-border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); display: none; }
+    #cornerPick.open { display: block; }
+    #cornerPick .cp-label { font-size: 10.5px; color: var(--text-dim); text-align: center; margin-bottom: 7px; }
+    #cornerPick .cp-btns { display: flex; gap: 8px; }
+    #cornerPick .cp-btn { width: 46px; height: 46px; border-radius: 9px; border: 1px solid var(--panel-border); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; line-height: 1; transition: background 0.15s ease; }
+    #cornerPick .cp-btn:hover { background: var(--accent); border-color: var(--accent); }
   </style>
 </head>
 <body>
@@ -147,7 +162,8 @@
       </div>
       <div class="zoom-control" style="margin-bottom:10px"><input type="range" id="contrast" min="0" max="100" step="1" value="60" /></div>
       <button class="text-btn" id="genTonesBtn" style="width:100%">Generate ⟳</button>
-      <div class="pal readonly" id="tonesView" style="margin-top:8px"></div>
+      <div class="pal" id="tonesView" style="margin-top:8px"></div>
+      <p class="hint" style="margin-top:6px">Click a tone swatch to fine-tune it.</p>
 
       <p class="field-label" style="margin-top:14px">New-bar size</p>
       <div class="seg" id="sizeSeg"><button data-size="0">S</button><button data-size="1" class="active">M</button><button data-size="2">L</button></div>
@@ -189,14 +205,27 @@
     <hr class="sep" />
 
     <div class="group" style="margin-bottom:0">
+      <div class="row-actions" style="margin-bottom:8px">
+        <button class="text-btn primary" id="downloadBtn">Save PNG</button>
+        <button class="text-btn primary" id="downloadSvgBtn">Save SVG</button>
+      </div>
       <div class="row-actions">
         <button class="text-btn" id="resetBtn">Reset all</button>
-        <button class="text-btn primary" id="downloadBtn">Save PNG</button>
       </div>
     </div>
   </div>
 
   <button id="toggle" title="Show menu (M)">&#9776;</button>
+
+  <div id="cursorHint"><span class="ring"></span><span class="txt">place bar here</span></div>
+
+  <div id="cornerPick">
+    <div class="cp-label">Put clicked point at bar's…</div>
+    <div class="cp-btns">
+      <button class="cp-btn" id="cpBL" title="Bottom-left corner (bar extends up-right)">◣</button>
+      <button class="cp-btn" id="cpTR" title="Top-right corner (bar extends down-left)">◥</button>
+    </div>
+  </div>
 
   <div id="barMenu">
     <div class="title"><span>Bar color</span><span id="barMenuHex"></span></div>
@@ -362,9 +391,12 @@
         return best;
       }
       function toUser(sx, sy) { var s = scaleFactor(); return [(sx - state.panX) / s, (sy - state.panY) / s]; }
-      function makeBar(ux, uy, sizeIdx, color) {
-        var n = SIZES[sizeIdx], cx = (BAR.th + BAR.sh) * n / 2, cy = -BAR.h * n / 2;
-        var d = snap(ux - cx, uy - cy, sizeIdx);
+      // corner: "bl" (clicked point = bar bottom-left), "tr" (= top-right), "center" (scatter)
+      function makeBar(ux, uy, sizeIdx, color, corner) {
+        var n = SIZES[sizeIdx], ox = 0, oy = 0;
+        if (corner === "tr") { ox = (BAR.th + BAR.sh) * n; oy = -BAR.h * n; }
+        else if (corner === "center") { ox = (BAR.th + BAR.sh) * n / 2; oy = -BAR.h * n / 2; }
+        var d = snap(ux - ox, uy - oy, sizeIdx);
         return { x: d[0], y: d[1], n: sizeIdx, color: color };
       }
       function hitBar(ux, uy) {
@@ -418,9 +450,21 @@
         function () { renderTones(); scheduleRender(); });
       refreshers.push(barDefaultRefresh);
 
+      var toneEditing = false;
       function renderTones() {
         var el = document.getElementById("tonesView"); el.innerHTML = "";
-        state.tones.forEach(function (hex) { var d = document.createElement("div"); d.className = "sw"; d.style.background = hex; d.title = hex.toUpperCase(); el.appendChild(d); });
+        state.tones.forEach(function (hex, idx) {
+          var lab = document.createElement("label"); lab.className = "sw"; lab.style.background = hex; lab.title = "Edit tone " + (idx + 1) + "  " + hex.toUpperCase();
+          var inp = document.createElement("input"); inp.type = "color"; inp.value = hex;
+          inp.style.cssText = "position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;padding:0";
+          inp.addEventListener("input", function () {
+            if (!toneEditing) { pushHistory(); toneEditing = true; }
+            state.tones[idx] = inp.value; lab.style.background = inp.value; lab.title = "Edit tone " + (idx + 1) + "  " + inp.value.toUpperCase();
+            applyTones(); scheduleRender();
+          });
+          inp.addEventListener("change", function () { toneEditing = false; });
+          lab.appendChild(inp); el.appendChild(lab);
+        });
       }
       function refreshAllColorUI() { refreshers.forEach(function (f) { f(); }); renderTones(); }
 
@@ -449,27 +493,57 @@
       lockZoomBtn.addEventListener("click", function () { state.lockZoom = !state.lockZoom; updateLockUI(); });
       lockPanBtn.addEventListener("click", function () { state.lockPan = !state.lockPan; updateLockUI(); });
 
+      // ---------- "place bar here" cursor ----------
+      var cursorHint = document.getElementById("cursorHint");
+      function inPlacementRegion(sx, sy) { var m = maskRect(); if (!m) return true; return sx >= m.x && sx <= m.x + m.w && sy >= m.y && sy <= m.y + m.h; }
+      function updateHint(sx, sy) {
+        if (inPlacementRegion(sx, sy)) { cursorHint.style.left = sx + "px"; cursorHint.style.top = sy + "px"; cursorHint.classList.add("show"); canvas.style.cursor = "none"; }
+        else { cursorHint.classList.remove("show"); canvas.style.cursor = "crosshair"; }
+      }
+      canvas.addEventListener("pointerleave", function () { cursorHint.classList.remove("show"); canvas.style.cursor = "crosshair"; });
+
       // ---------- Pointer: pan / place / edit ----------
       var pDown = false, moved = 0, lastX = 0, lastY = 0;
-      canvas.addEventListener("pointerdown", function (e) { closeBarMenu(); pDown = true; moved = 0; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
+      canvas.addEventListener("pointerdown", function (e) { closeBarMenu(); closeCornerPick(); cursorHint.classList.add("down"); pDown = true; moved = 0; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
       canvas.addEventListener("pointermove", function (e) {
-        if (!pDown) return;
+        if (!pDown) { updateHint(e.clientX, e.clientY); return; }
         var dx = e.clientX - lastX, dy = e.clientY - lastY; moved += Math.abs(dx) + Math.abs(dy);
         lastX = e.clientX; lastY = e.clientY;
+        updateHint(e.clientX, e.clientY);
         if (state.lockPan) return;
         if (moved > 4) canvas.classList.add("grabbing");
         state.panX += dx; state.panY += dy; scheduleRender();
       });
       canvas.addEventListener("pointerup", function (e) {
-        pDown = false; canvas.classList.remove("grabbing");
+        pDown = false; canvas.classList.remove("grabbing"); cursorHint.classList.remove("down");
         if (canvas.hasPointerCapture && canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
         if (moved <= 4) {
           var u = toUser(e.clientX, e.clientY), hit = hitBar(u[0], u[1]);
           if (hit >= 0) openBarMenu(hit, e.clientX, e.clientY);
-          else { pushHistory(); bars.push(makeBar(u[0], u[1], state.clickSize, state.barColor)); scheduleRender(); }
+          else openCornerPick(u[0], u[1], e.clientX, e.clientY); // choose corner, then place
         }
       });
-      canvas.addEventListener("pointercancel", function () { pDown = false; canvas.classList.remove("grabbing"); });
+      canvas.addEventListener("pointercancel", function () { pDown = false; canvas.classList.remove("grabbing"); cursorHint.classList.remove("down"); });
+
+      // ---------- Corner-choice popup (which corner sits under the click) ----------
+      var cornerPick = document.getElementById("cornerPick"), pendingPlace = null;
+      function openCornerPick(ux, uy, sx, sy) {
+        pendingPlace = { ux: ux, uy: uy, size: state.clickSize, color: state.barColor };
+        cornerPick.classList.add("open");
+        var mw = cornerPick.offsetWidth || 128, mh = cornerPick.offsetHeight || 90;
+        cornerPick.style.left = Math.min(Math.max(6, sx - mw / 2), window.innerWidth - mw - 6) + "px";
+        cornerPick.style.top = Math.min(Math.max(6, sy - mh - 12), window.innerHeight - mh - 6) + "px";
+      }
+      function closeCornerPick() { cornerPick.classList.remove("open"); pendingPlace = null; }
+      function placePending(corner) {
+        if (!pendingPlace) return;
+        pushHistory();
+        bars.push(makeBar(pendingPlace.ux, pendingPlace.uy, pendingPlace.size, pendingPlace.color, corner));
+        closeCornerPick(); scheduleRender();
+      }
+      document.getElementById("cpBL").addEventListener("click", function () { placePending("bl"); });
+      document.getElementById("cpTR").addEventListener("click", function () { placePending("tr"); });
+      cornerPick.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
 
       // ---------- Segmented controls ----------
       function wireSeg(id, attr, cb) {
@@ -518,7 +592,7 @@
         var x0 = tl[0], y0 = tl[1], dx = br[0] - x0, dy = br[1] - y0;
         for (var i = 0; i < n; i++) {
           var uv = layoutUV(state.layout, i, n);
-          bars.push(makeBar(x0 + uv[0] * dx, y0 + uv[1] * dy, Math.floor(Math.random() * 3), state.barColor));
+          bars.push(makeBar(x0 + uv[0] * dx, y0 + uv[1] * dy, Math.floor(Math.random() * 3), state.barColor, "center"));
         }
         if (state.tones.length > 1) applyTones(); // colourise with the active tone set
         scheduleRender();
@@ -579,7 +653,7 @@
         state.zoom = 100; state.panX = 0; state.panY = 0; state.mask = null; state.lockZoom = false; state.lockPan = false;
         bars.length = 0; document.getElementById("maskSel").value = "";
         contrastInput.value = 60; contrastReadout.textContent = "60%";
-        refreshAllColorUI(); buildTileRaster(); zoomInput.value = 100; updateZoomReadout(); updateLockUI(); closeBarMenu(); scheduleRender();
+        refreshAllColorUI(); buildTileRaster(); zoomInput.value = 100; updateZoomReadout(); updateLockUI(); closeBarMenu(); closeCornerPick(); scheduleRender();
       });
 
       // ---------- Save PNG (crops to aspect mask if set) ----------
@@ -592,6 +666,27 @@
         var link = document.createElement("a"); link.download = "pattern.png"; link.href = ec.toDataURL("image/png"); link.click();
       });
 
+      // ---------- Save SVG (fully vector, cropped to aspect mask if set) ----------
+      document.getElementById("downloadSvgBtn").addEventListener("click", function () {
+        var m = maskRect() || { x: 0, y: 0, w: W, h: H }, s = scaleFactor();
+        var tx = state.panX - m.x, ty = state.panY - m.y;
+        var W2 = Math.round(m.w), H2 = Math.round(m.h), tf = "translate(" + tx.toFixed(3) + " " + ty.toFixed(3) + ") scale(" + s.toFixed(6) + ")";
+        function grp(color, list) { var s2 = '<g fill="' + color + '">'; for (var i = 0; i < list.length; i++) s2 += '<polygon points="' + list[i] + '"/>'; return s2 + "</g>"; }
+        var inner = grp(state.c1, DATA.polys.c1) + grp(state.c2, DATA.polys.c2) + grp(state.c3, DATA.polys.c3);
+        var barsSvg = "";
+        for (var b = 0; b < bars.length; b++) {
+          var c = barCorners(bars[b]);
+          barsSvg += '<polygon points="' + c.map(function (p) { return p[0].toFixed(2) + "," + p[1].toFixed(2); }).join(" ") + '" fill="' + bars[b].color + '"/>';
+        }
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W2 + '" height="' + H2 + '" viewBox="0 0 ' + W2 + " " + H2 + '">'
+          + '<defs><pattern id="p" patternUnits="userSpaceOnUse" x="0" y="0" width="' + P + '" height="' + VH + '" patternTransform="' + tf + '">' + inner + '</pattern></defs>'
+          + '<rect width="' + W2 + '" height="' + H2 + '" fill="url(#p)"/>'
+          + '<g transform="' + tf + '">' + barsSvg + '</g></svg>';
+        var blob = new Blob([svg], { type: "image/svg+xml" }), url = URL.createObjectURL(blob);
+        var link = document.createElement("a"); link.download = "pattern.svg"; link.href = url; link.click();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      });
+
       // ---------- Menu show/hide ----------
       var panel = document.getElementById("panel");
       function toggleMenu(force) { var hide = (force === undefined) ? !panel.classList.contains("hidden") : force; panel.classList.toggle("hidden", hide); }
@@ -600,6 +695,7 @@
       document.addEventListener("keydown", function (e) {
         var t = document.activeElement, typing = t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA");
         if ((e.metaKey || e.ctrlKey) && (e.key === "z" || e.key === "Z")) { e.preventDefault(); undo(); return; }
+        if (e.key === "Escape") { closeCornerPick(); closeBarMenu(); return; }
         if ((e.key === "m" || e.key === "M") && !typing) toggleMenu();
       });
 
