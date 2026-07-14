@@ -385,11 +385,17 @@
       function scheduleRender() { if (!raf) raf = requestAnimationFrame(function () { raf = null; render(); }); }
 
       // ---------- Geometry / placement ----------
+      // Anchors repeat on the OBLIQUE lattice: tile (i,j) sits at (i*P + j*OFFX, j*VH),
+      // so a base-tile anchor (ax,ay) lands at world (ax + i*P + j*OFFX, ay + j*VH).
       function snap(ux, uy, sizeIdx) {
         var list = DATA.validAnchors[String(SIZES[sizeIdx])], best = null, bestD = Infinity;
         for (var k = 0; k < list.length; k++) {
           var ax = list[k][0], ay = list[k][1];
-          var X = ax + Math.round((ux - ax) / P) * P, Y = ay + Math.round((uy - ay) / VH) * VH;
+          var j = Math.round((uy - ay) / VH);
+          var Y = ay + j * VH;
+          var xb = ax + j * OFFX;
+          var i = Math.round((ux - xb) / P);
+          var X = xb + i * P;
           var dx = X - ux, dy = Y - uy, d = dx * dx + dy * dy;
           if (d < bestD) { bestD = d; best = [X, Y]; }
         }
