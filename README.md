@@ -25,8 +25,10 @@ artwork is rendered to a canvas — seamless, recolorable, and **sharp at any zo
   - every new bar uses one **bar colour**; **click a placed bar** to recolour it
     individually or delete it,
   - **Generate harmonious blue tones** (2 or 3, your choice) — a seeded generator
-    produces in-family blue tones with enough contrast to read on the navy
-    pattern; each press reseeds for a fresh but fitting set, and recolours the bars,
+    produces in-family blue tones; each press reseeds for a fresh but fitting set
+    and recolours the bars. A **Contrast to pattern** slider sets how far (in
+    lightness) the next tones sit from the current pattern colours — from blending
+    in to popping out,
   - **Scatter** respects the active aspect mask and offers composition layouts
     (rule of thirds, golden ratio, golden spiral, center-weighted, even),
   - Undo (button or **⌘/Ctrl+Z**) / Clear.
