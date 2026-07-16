@@ -56,9 +56,13 @@ native scale it switches to vector.
 
 The overlay bars reuse the pattern's **base element** — a parallelogram of
 thickness `477/10`, height `2916.85/21`, shear `¾·height`. For a scaled copy to
-line up exactly, its corners must fall on real pattern vertices, which only holds
-for a sub-lattice of anchor points; `pattern-data.js` stores those **valid anchor
-positions per size**, and placement snaps to them.
+line up exactly, its corners must fall on real pattern vertices. Those vertices
+form a single **regular lattice** — `origin + i·(th, 0) + j·(sh/2, −h/2)` — and a
+scale-*N* bar's corner offsets are all integer combinations of that basis, so
+**every** lattice point is a valid anchor for every size. Placement and the
+D-pad / arrow-key nudges therefore compute the nearest lattice point directly:
+placement always lands on the closest legal spot, and a nudge always moves one
+even step — no gaps, no far jumps.
 
 ## Run locally
 
