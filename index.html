@@ -263,6 +263,15 @@
       var P = DATA.period, VH = DATA.height, BAR = DATA.bar;
       var OFFX = -757; // horizontal offset per vertical tile (oblique lattice) -> seamless
       var BASE_SCALE = 0.16, SIZES = [2, 3, 5];
+      // Overlay bars snap to the pattern's base-bar vertex lattice, which is a
+      // single REGULAR lattice: origin + i*(th,0) + j*(sh/2,-h/2). A scale-N bar's
+      // corner offsets (N*(th,0), N*(sh,-h), their sum) are all integer combinations
+      // of this basis, so EVERY lattice point is a valid anchor for every size.
+      // Computing the nearest lattice point directly (instead of searching a finite,
+      // gappy stored anchor list) means placement always lands on the closest legal
+      // spot and nudging always moves one even step -- no voids, no far jumps.
+      var LAT_A = [BAR.th, 0], LAT_B = [BAR.sh / 2, -BAR.h / 2];
+      var LAT_O = DATA.validAnchors["5"][0]; // any real anchor fixes the coset (shared by all sizes)
 
       var PALETTE = [
         { name: "Light", hex: "#1f2e66" }, { name: "Mid", hex: "#0f245b" },
@@ -404,19 +413,26 @@
       function scheduleRender() { if (!raf) raf = requestAnimationFrame(function () { raf = null; render(); }); }
 
       // ---------- Geometry / placement ----------
-      // Anchors repeat on the OBLIQUE lattice: tile (i,j) sits at (i*P + j*OFFX, j*VH),
-      // so a base-tile anchor (ax,ay) lands at world (ax + i*P + j*OFFX, ay + j*VH).
+      // Solve (ux,uy) - LAT_O = i*LAT_A + j*LAT_B for real i,j. LAT_A[1] == 0, so
+      // j comes straight from the vertical component, then i from the horizontal.
+      function latIJ(ux, uy) {
+        var jf = (uy - LAT_O[1]) / LAT_B[1];
+        var iff = ((ux - LAT_O[0]) - jf * LAT_B[0]) / LAT_A[0];
+        return [iff, jf];
+      }
+      function latPoint(i, j) {
+        return [LAT_O[0] + i * LAT_A[0] + j * LAT_B[0], LAT_O[1] + i * LAT_A[1] + j * LAT_B[1]];
+      }
+      // Nearest anchor-lattice point to (ux,uy) -- the closest legal position.
       function snap(ux, uy, sizeIdx) {
-        var list = DATA.validAnchors[String(SIZES[sizeIdx])], best = null, bestD = Infinity;
-        for (var k = 0; k < list.length; k++) {
-          var ax = list[k][0], ay = list[k][1];
-          var j = Math.round((uy - ay) / VH);
-          var Y = ay + j * VH;
-          var xb = ax + j * OFFX;
-          var i = Math.round((ux - xb) / P);
-          var X = xb + i * P;
-          var dx = X - ux, dy = Y - uy, d = dx * dx + dy * dy;
-          if (d < bestD) { bestD = d; best = [X, Y]; }
+        var f = latIJ(ux, uy), best = null, bestD = Infinity;
+        for (var dj = -1; dj <= 1; dj++) {
+          var j = Math.round(f[1]) + dj;
+          for (var di = -1; di <= 1; di++) {
+            var i = Math.round(f[0]) + di, pt = latPoint(i, j);
+            var dx = pt[0] - ux, dy = pt[1] - uy, d = dx * dx + dy * dy;
+            if (d < bestD) { bestD = d; best = pt; }
+          }
         }
         return best;
       }
@@ -660,23 +676,19 @@
       // Nudge the selected bar to the next valid anchor in a direction (perp-weighted).
       function nudge(dir) {
         if (barMenuIdx < 0) return;
-        var b = bars[barMenuIdx], cx = b.x, cy = b.y, list = DATA.validAnchors[String(SIZES[b.n])];
-        var best = null, bestCost = Infinity;
-        for (var k = 0; k < list.length; k++) {
-          var ax = list[k][0], ay = list[k][1], j0 = Math.round((cy - ay) / VH);
-          for (var dj = -1; dj <= 1; dj++) {
-            var j = j0 + dj, Y = ay + j * VH, xb = ax + j * OFFX, i0 = Math.round((cx - xb) / P);
-            for (var di = -1; di <= 1; di++) {
-              var X = xb + (i0 + di) * P, ddx = X - cx, ddy = Y - cy, cost;
-              // Squared distance with a mild bias toward the requested axis. Squaring
-              // keeps the pick to the NEAREST valid anchor in that direction, so it
-              // can never leap a whole row past closer options.
-              if (dir === "right") { if (ddx <= 1) continue; cost = ddx * ddx + 1.4 * ddy * ddy; }
-              else if (dir === "left") { if (ddx >= -1) continue; cost = ddx * ddx + 1.4 * ddy * ddy; }
-              else if (dir === "down") { if (ddy <= 1) continue; cost = 1.4 * ddx * ddx + ddy * ddy; }
-              else { if (ddy >= -1) continue; cost = 1.4 * ddx * ddx + ddy * ddy; }
-              if (cost < bestCost) { bestCost = cost; best = [X, Y]; }
-            }
+        var b = bars[barMenuIdx], cx = b.x, cy = b.y, f = latIJ(cx, cy);
+        var i0 = Math.round(f[0]), j0 = Math.round(f[1]), best = null, bestCost = Infinity;
+        // The bar sits on a regular lattice, so the next position in any direction is
+        // an adjacent lattice point -- a single even step, never a leap across a void.
+        for (var dj = -1; dj <= 1; dj++) {
+          for (var di = -1; di <= 1; di++) {
+            if (di === 0 && dj === 0) continue;
+            var pt = latPoint(i0 + di, j0 + dj), ddx = pt[0] - cx, ddy = pt[1] - cy, cost;
+            if (dir === "right") { if (ddx <= 1) continue; cost = ddx * ddx + 1.4 * ddy * ddy; }
+            else if (dir === "left") { if (ddx >= -1) continue; cost = ddx * ddx + 1.4 * ddy * ddy; }
+            else if (dir === "down") { if (ddy <= 1) continue; cost = 1.4 * ddx * ddx + ddy * ddy; }
+            else { if (ddy >= -1) continue; cost = 1.4 * ddx * ddx + ddy * ddy; }
+            if (cost < bestCost) { bestCost = cost; best = pt; }
           }
         }
         if (best) { pushHistory(); b.x = best[0]; b.y = best[1]; scheduleRender(); }
