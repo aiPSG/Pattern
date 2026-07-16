@@ -88,6 +88,10 @@
     #barMenu.open { display: block; }
     #barMenu .title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dim); margin-bottom: 10px; display:flex; justify-content:space-between; }
     #barMenu .pal { margin-bottom: 10px; }
+    #barMenu .dpad { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-areas: ". u ." "l m r" ". d ."; gap: 5px; width: 118px; margin: 0 auto 12px; }
+    #barMenu .dbtn { -webkit-appearance: none; appearance: none; border: 1px solid var(--panel-border); background: rgba(255,255,255,0.06); color: var(--text); border-radius: 8px; height: 34px; font-size: 14px; line-height: 1; cursor: pointer; transition: background 0.15s ease; }
+    #barMenu .dbtn:hover { background: var(--accent); border-color: var(--accent); }
+    #barMenu .dpad .mid { border: none; background: none; color: var(--text-dim); font-size: 10px; cursor: default; }
 
     /* "place bar here" cursor */
     #cursorHint { position: fixed; z-index: 28; pointer-events: none; display: none; align-items: center; }
@@ -139,12 +143,19 @@
       <span class="section-label">Aspect mask</span>
       <select class="styled" id="maskSel">
         <option value="">None</option>
+        <option value="13:2">13 : 2</option><option value="29:9">29 : 9</option>
         <option value="21:9">21 : 9</option><option value="16:9">16 : 9</option>
         <option value="3:2">3 : 2</option><option value="4:3">4 : 3</option>
         <option value="5:4">5 : 4</option><option value="1:1">1 : 1</option>
         <option value="4:5">4 : 5</option><option value="3:4">3 : 4</option>
         <option value="2:3">2 : 3</option><option value="9:16">9 : 16</option>
+        <option value="custom">Custom…</option>
       </select>
+      <div class="inline" id="customMask" style="display:none;margin-top:8px">
+        <input type="number" id="maskW" min="0.1" step="0.1" value="16" style="width:64px" />
+        <span style="color:var(--text-dim)">:</span>
+        <input type="number" id="maskH" min="0.1" step="0.1" value="9" style="width:64px" />
+      </div>
     </div>
 
     <hr class="sep" />
@@ -230,6 +241,14 @@
   <div id="barMenu">
     <div class="title"><span>Bar color</span><span id="barMenuHex"></span></div>
     <div class="pal" id="pal_bar"></div>
+    <div class="title">Move &middot; arrow keys</div>
+    <div class="dpad">
+      <button class="dbtn" id="dUp" style="grid-area:u" title="Up (↑)">&#9650;</button>
+      <button class="dbtn" id="dLeft" style="grid-area:l" title="Left (←)">&#9664;</button>
+      <span class="dbtn mid" style="grid-area:m">move</span>
+      <button class="dbtn" id="dRight" style="grid-area:r" title="Right (→)">&#9654;</button>
+      <button class="dbtn" id="dDown" style="grid-area:d" title="Down (↓)">&#9660;</button>
+    </div>
     <div class="row-actions">
       <button class="text-btn" id="barDelete">Delete</button>
       <button class="text-btn" id="barClose">Close</button>
@@ -564,7 +583,16 @@
       wireSeg("sizeSeg", "data-size", function (v) { state.clickSize = v; });
       wireSeg("toneCountSeg", "data-tc", function (v) { state.toneCount = v; });
       document.getElementById("layoutSel").addEventListener("change", function (e) { state.layout = e.target.value; });
-      document.getElementById("maskSel").addEventListener("change", function (e) { state.mask = e.target.value ? e.target.value.split(":").map(Number) : null; scheduleRender(); });
+      var maskSelEl = document.getElementById("maskSel"), customMaskEl = document.getElementById("customMask");
+      var maskWEl = document.getElementById("maskW"), maskHEl = document.getElementById("maskH");
+      function applyCustomMask() { var w = parseFloat(maskWEl.value), h = parseFloat(maskHEl.value); if (w > 0 && h > 0) { state.mask = [w, h]; scheduleRender(); } }
+      maskSelEl.addEventListener("change", function (e) {
+        var v = e.target.value;
+        if (v === "custom") { customMaskEl.style.display = "flex"; applyCustomMask(); }
+        else { customMaskEl.style.display = "none"; state.mask = v ? v.split(":").map(Number) : null; scheduleRender(); }
+      });
+      maskWEl.addEventListener("input", function () { if (maskSelEl.value === "custom") applyCustomMask(); });
+      maskHEl.addEventListener("input", function () { if (maskSelEl.value === "custom") applyCustomMask(); });
 
       // ---------- Generate harmonious tones ----------
       function applyTones() {
@@ -628,6 +656,32 @@
       document.getElementById("barClose").addEventListener("click", closeBarMenu);
       document.getElementById("barDelete").addEventListener("click", function () { if (barMenuIdx >= 0) { pushHistory(); bars.splice(barMenuIdx, 1); closeBarMenu(); scheduleRender(); } });
       barMenu.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+
+      // Nudge the selected bar to the next valid anchor in a direction (perp-weighted).
+      function nudge(dir) {
+        if (barMenuIdx < 0) return;
+        var b = bars[barMenuIdx], cx = b.x, cy = b.y, list = DATA.validAnchors[String(SIZES[b.n])];
+        var best = null, bestCost = Infinity;
+        for (var k = 0; k < list.length; k++) {
+          var ax = list[k][0], ay = list[k][1], j0 = Math.round((cy - ay) / VH);
+          for (var dj = -1; dj <= 1; dj++) {
+            var j = j0 + dj, Y = ay + j * VH, xb = ax + j * OFFX, i0 = Math.round((cx - xb) / P);
+            for (var di = -1; di <= 1; di++) {
+              var X = xb + (i0 + di) * P, ddx = X - cx, ddy = Y - cy, cost;
+              if (dir === "right") { if (ddx <= 1) continue; cost = ddx + 4 * Math.abs(ddy); }
+              else if (dir === "left") { if (ddx >= -1) continue; cost = -ddx + 4 * Math.abs(ddy); }
+              else if (dir === "down") { if (ddy <= 1) continue; cost = ddy + 4 * Math.abs(ddx); }
+              else { if (ddy >= -1) continue; cost = -ddy + 4 * Math.abs(ddx); }
+              if (cost < bestCost) { bestCost = cost; best = [X, Y]; }
+            }
+          }
+        }
+        if (best) { pushHistory(); b.x = best[0]; b.y = best[1]; scheduleRender(); }
+      }
+      document.getElementById("dUp").addEventListener("click", function () { nudge("up"); });
+      document.getElementById("dDown").addEventListener("click", function () { nudge("down"); });
+      document.getElementById("dLeft").addEventListener("click", function () { nudge("left"); });
+      document.getElementById("dRight").addEventListener("click", function () { nudge("right"); });
 
       // ---------- Colour schemes ----------
       var SKEY = "patternColorSchemes";
@@ -717,6 +771,11 @@
         var t = document.activeElement, typing = t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA");
         if ((e.metaKey || e.ctrlKey) && (e.key === "z" || e.key === "Z")) { e.preventDefault(); undo(); return; }
         if (e.key === "Escape") { closeCornerPick(); closeBarMenu(); return; }
+        if (barMenuIdx >= 0 && !typing && e.key.indexOf("Arrow") === 0) {
+          e.preventDefault();
+          nudge(e.key === "ArrowLeft" ? "left" : e.key === "ArrowRight" ? "right" : e.key === "ArrowUp" ? "up" : "down");
+          return;
+        }
         if ((e.key === "m" || e.key === "M") && !typing) toggleMenu();
       });
 
