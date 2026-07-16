@@ -668,10 +668,13 @@
             var j = j0 + dj, Y = ay + j * VH, xb = ax + j * OFFX, i0 = Math.round((cx - xb) / P);
             for (var di = -1; di <= 1; di++) {
               var X = xb + (i0 + di) * P, ddx = X - cx, ddy = Y - cy, cost;
-              if (dir === "right") { if (ddx <= 1) continue; cost = ddx + 4 * Math.abs(ddy); }
-              else if (dir === "left") { if (ddx >= -1) continue; cost = -ddx + 4 * Math.abs(ddy); }
-              else if (dir === "down") { if (ddy <= 1) continue; cost = ddy + 4 * Math.abs(ddx); }
-              else { if (ddy >= -1) continue; cost = -ddy + 4 * Math.abs(ddx); }
+              // Squared distance with a mild bias toward the requested axis. Squaring
+              // keeps the pick to the NEAREST valid anchor in that direction, so it
+              // can never leap a whole row past closer options.
+              if (dir === "right") { if (ddx <= 1) continue; cost = ddx * ddx + 1.4 * ddy * ddy; }
+              else if (dir === "left") { if (ddx >= -1) continue; cost = ddx * ddx + 1.4 * ddy * ddy; }
+              else if (dir === "down") { if (ddy <= 1) continue; cost = 1.4 * ddx * ddx + ddy * ddy; }
+              else { if (ddy >= -1) continue; cost = 1.4 * ddx * ddx + ddy * ddy; }
               if (cost < bestCost) { bestCost = cost; best = [X, Y]; }
             }
           }
